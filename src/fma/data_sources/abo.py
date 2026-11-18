@@ -499,8 +499,10 @@ def _product_type(raw: Mapping[str, Any]) -> str | None:
 def _node_names(raw: Mapping[str, Any]) -> list[str]:
     names: list[str] = []
     for node in _as_list(raw.get("node")):
-        if isinstance(node, dict) and node.get("node_name"):
-            names.append(str(node["node_name"]))
+        if isinstance(node, dict):
+            path = node.get("path") or node.get("node_name")
+            if path:
+                names.append(str(path))
     return names
 
 
@@ -626,12 +628,17 @@ def normalize_listing(
         value, original = _pick_scalar(raw, field)
         add_fact(field, field, value, raw_value=original)
 
+    descriptions = [
+        str(value)
+        for value, _, _ in _localized_entries(raw, "product_description")
+        if value
+    ]
     bullet_points = [
         str(value)
         for value, _, _ in _localized_entries(raw, "bullet_point")
         if value
     ]
-    description = "\n".join(bullet_points) or None
+    description = "\n".join(descriptions or bullet_points) or None
 
     image_index = image_index or {}
     assets: list[CatalogAssetReference] = []
