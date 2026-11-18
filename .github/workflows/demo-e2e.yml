@@ -1,0 +1,95 @@
+name: Public Data Demo E2E
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "src/fma/production.py"
+      - "src/fma/marketing.py"
+      - "src/fma/models.py"
+      - "src/fma/data_sources/**"
+      - "tests/test_production.py"
+      - ".github/workflows/demo-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  render-public-sku:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install FFmpeg and font
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - name: Install package and test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Run unit and render integration tests
+        run: pytest -q
+      - name: Import public ABO sample
+        run: python -m fma.data_sources.abo --data-dir "$RUNNER_TEMP/abo-data" --limit 10
+      - name: Select a real SKU with a public image
+        id: sku
+        env:
+          ABO_DATA_DIR: \${{ runner.temp }}/abo-data
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ["ABO_DATA_DIR"]) / "processed"
+          products = json.loads((root / "products.json").read_text(encoding="utf-8"))
+          product = next(
+              p for p in products
+              if any(a.get("role") == "main_image" and a.get("source_uri") for a in p.get("assets", []))
+          )
+          print(f"sku={product['sku']}")
+          PY
+      - name: Render a real public product MP4
+        run: |
+          fma-render \
+            --sku "\${{ steps.sku.outputs.sku }}" \
+            --data-dir "$RUNNER_TEMP/abo-data" \
+            --output-dir "$RUNNER_TEMP/renders" \
+            --creative-output-dir "$RUNNER_TEMP/creatives" \
+            --audience B2C \
+            --objective product_consideration \
+            --angle product_overview \
+            --duration 30 \
+            > "$RUNNER_TEMP/render-result.json"
+      - name: Verify rendered MP4 and provenance
+        env:
+          RENDER_RESULT: \${{ runner.temp }}/render-result.json
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          result = json.loads(Path(os.environ["RENDER_RESULT"]).read_text(encoding="utf-8"))
+          report = result["render_report"]
+          edl = result["edl"]
+          video = Path(report["output_path"])
+          assert video.is_file() and video.stat().st_size > 0
+          assert report["video_codec"] == "h264"
+          assert report["width"] == 1080 and report["height"] == 1920
+          assert abs(report["duration_seconds"] - 30) <= 1
+          assert edl["shots"]
+          assert all(s["match_status"] in {"matched", "missing"} for s in edl["shots"])
+          assert edl["source_dataset"] == "amazon-berkeley-objects"
+          print(f"Rendered {video} ({report['duration_seconds']:.2f}s, {report['width']}x{report['height']})")
+          PY
+      - name: Upload public-data Demo video and production pack
+        uses: actions/upload-artifact@v4
+        with:
+          name: furniture-marketing-agent-public-demo
+          path: |
+            \${{ runner.temp }}/renders/
+            \${{ runner.temp }}/creatives/
+          if-no-files-found: error
+          retention-days: 14

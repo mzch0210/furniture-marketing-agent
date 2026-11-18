@@ -28,7 +28,10 @@ Base path for the future service API: /api/v1. This document describes the targe
 - GET /video-jobs/{job_id} — inspect job status.
 - POST /video-jobs/{job_id}/render — enqueue render.
 - POST /video-jobs/{job_id}/quality-check — run QC.
-- POST /video-jobs/{job_id}/approve — final approval.
+- POST /video-jobs/{job_id}/approve — final approval
+
+### Implemented Public Data Demo video endpoint
+- POST /api/video/render — synchronously generate the creative, match official ABO still images, build an EDL and render/inspect a vertical MP4 for a local single-user Demo..
 
 ## Publication and analytics
 - POST /publications — record manually published video.

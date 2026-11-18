@@ -35,13 +35,13 @@ Exit criteria: browse/select a public SKU and inspect source-backed facts; unkno
 Exit criteria: structured creative output validates and contains no unsupported product claims.
 
 ### Sprint 3 — Asset matching and rendering
-- Match storyboard shots to available catalog images or 360° sequences.
-- Mark absent live-action shots as missing; generate a reshoot checklist.
-- Produce an editable edit decision list.
-- Render a 9:16 MP4 with FFmpeg.
-- Clearly label image-motion and 360° turntable outputs as catalog-image-based video.
+- [x] Match storyboard shots to available official catalog still images; 360° frame-sequence rendering remains a follow-up.
+- [x] Mark absent product shots as missing and generate a reshoot checklist.
+- [x] Produce an editable JSON edit decision list with asset provenance.
+- [x] Render and inspect a 1080×1920, 30fps H.264 MP4 with FFmpeg/ffprobe.
+- [x] Clearly label still-image motion as catalog-image animation, not live-action.
 
-Exit criteria: selected SKU produces a playable MP4 and all shots have matched or missing status.
+Exit criteria: a live public ABO SKU completes rendering in the Demo E2E workflow; all product shots are matched or marked missing, and generated title cards are identified separately.
 
 ### Sprint 4 — UI, QC and reproducibility
 - Add lightweight local UI.

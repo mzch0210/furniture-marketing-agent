@@ -83,6 +83,18 @@ Exports are written under gitignored data/outputs/creatives/. The generator only
 
 See docs/11-campaign-creative-generation.md.
 
+## Render a public-data vertical MP4
+
+After importing the ABO catalog, render a playable 9:16 H.264 MP4 from one selected public SKU:
+
+~~~bash
+fma-render --sku YOUR_IMPORTED_SKU --audience B2C --objective product_consideration --angle product_overview --duration 30
+~~~
+
+The renderer downloads only selected official product image objects, prefers original-resolution images and falls back to the small catalog image, builds an editable EDL, marks missing product shots and validates the MP4 with ffprobe. Output: \`data/renders/{campaign_id}/{sku}/\`. Install FFmpeg and a TrueType font first. This first Demo output is a silent catalog-image animation, not live-action footage.
+
+See [Video Production](docs/12-video-production.md).
+
 ## Product architecture
 
 - Orchestrator：工作流编排、状态机、重试和审批
@@ -97,7 +109,7 @@ Agent 输出结构化结果；事实校验、媒体渲染和质量规则尽量�
 
 ## Repository status
 
-当前仓库已建立产品文档、Python 包骨架和基础 CI。Public Data Demo 的数据适配器、交互界面、完整视频生产链仍属于待实现工作；不要把现有骨架误认为完整 Demo 已经完成。
+当前已实现公开商品导入、商品浏览、确定性营销内容生成，以及基于公开商品图片的本地 EDL/MP4 渲染切片。轻量 UI、端到端 QC、人工审核和内容包整合仍在 Issue #13 中；不要把图片动态化视频误认为工厂实拍。
 
 ## Documentation
 
@@ -108,6 +120,7 @@ Agent 输出结构化结果；事实校验、媒体渲染和质量规则尽量�
 - [API Specification](docs/05-api-spec.md)
 - [Development Roadmap](docs/06-development-plan.md)
 - [Video Quality Standard](docs/07-video-quality-standard.md)
+- [Video Production](docs/12-video-production.md)
 - [Validation Plan](docs/08-mvp-validation.md)
 - [Public Data Demo Plan](docs/09-public-data-demo-plan.md)
 
