@@ -1,89 +1,86 @@
 # Furniture Marketing Agent
 
-家具行业端到端营销短视频 Agent。
+家具行业端到端营销视频 Agent。**本仓库建设的是完整产品；Public Data Demo 只是当前优先实施和验证的第一个可运行阶段，不是独立的一次性原型。**
 
-本项目面向家具工厂的 TikTok 英语市场营销场景，目标是把“商品信息 → 素材整理 → 营销策略 → 英文脚本/分镜 → 实拍素材匹配 → AI 场景增强 → 自动化剪辑 → 质检 → 人工发布 → 数据回流”整合为一条可复用的生产流水线。
+面向家具工厂，优先服务 TikTok 英语市场，覆盖 B2B 与 B2C 营销场景。产品目标是把商品信息、素材管理、市场与营销策略、脚本分镜、视频生产、质量审核、发布管理和效果分析整合为可追溯的工作流。
 
-## 当前产品决策
+## Product vision
 
-| 项目 | 决策 |
-|---|---|
-| 首要市场 | TikTok 英语市场 |
-| 首批客户 | 家具工厂，B2B + B2C |
-| 视频路线 | 实拍素材为主，AI 场景增强为辅 |
-| 产品阶段 | 先内部系统，再 SaaS 化 |
-| MVP 发布 | TikTok 首期人工发布，系统记录发布结果 |
-| 默认视频 | 25–27 秒、9:16、1080×1920、30fps、H.264/MP4、英文字幕 |
-| 默认镜头 | 7 组实拍镜头 |
-| 内容结构 | Hook → Body → CTA |
-| 核心原则 | 产品事实优先、真实产品优先、AI 不得虚构产品属性 |
+完整产品能力：
 
-## 端到端流程
+1. 商品与 SKU 管理、产品事实知识库
+2. 图片/视频素材资产管理与智能检索
+3. 市场研究、受众分析和营销策略
+4. 英文及多语言脚本、分镜、字幕和拍摄清单
+5. 实拍素材匹配、缺失镜头识别和 AI 场景增强
+6. 自动剪辑、渲染、质量检查和人工审核
+7. TikTok 等渠道的发布管理
+8. 内容表现、询盘和转化数据回流
+9. 面向未来 SaaS 的 Workspace、权限和租户隔离
 
-商品资料导入
-→ Product Agent 提取与事实审核
-→ 素材上传与分析
-→ Marketing Brief
-→ Market Agent / Strategy Agent
-→ Creative Agent 生成英文脚本、分镜与拍摄清单
-→ Production Agent 素材匹配、缺口识别、AI 场景增强
-→ FFmpeg 成片
-→ Quality Agent 自动质检
+## Delivery strategy
+
+| 阶段 | 目标 | 数据 |
+|---|---|---|
+| Phase 0 | 完整产品设计与工程基础 | 示例/模拟数据 |
+| Phase 1 — Current | Public Data Demo：跑通端到端核心链路 | ABO 等公开数据 |
+| Phase 2 | 家具工厂内部试点 | 工厂授权 SKU 和实拍素材 |
+| Phase 3 | 完整内部产品 | 企业商品、素材、运营数据 |
+| Phase 4 | SaaS 产品化 | 多 Workspace、多用户和商业化能力 |
+
+**当前阶段边界：** 只实现足以验证核心产品价值的一条完整纵向切片。Demo 使用公开商品图像生成动态展示视频时，必须明确标记为图片动画/360° 展示，不得将其描述为工厂实拍视频。正式产品仍坚持“实拍素材为主，AI 场景增强为辅”。
+
+## Public Data Demo
+
+当前优先验证的链路：
+
+公开商品数据导入
+→ 商品事实卡及来源记录
+→ B2B/B2C 营销 brief
+→ 英文脚本、分镜和字幕
+→ 公开图片/360°素材匹配
+→ 剪辑计划
+→ 竖屏 MP4 渲染
+→ 技术与内容质检
 → 人工审核
-→ 人工发布 TikTok
-→ 数据与询盘回流
-→ 下一轮内容优化
+→ 导出视频和营销内容包
 
-## Agent 角色
+首选数据源为 [Amazon Berkeley Objects (ABO)](https://amazon-berkeley-objects.s3.us-east-1.amazonaws.com/index.html)。先读取商品列表，只下载入选 SKU 所需的图片/360°素材；不下载完整图片、360°或 3D 大型归档。数据许可、署名和下载说明见 [Public Data Demo Plan](docs/09-public-data-demo-plan.md)。
 
-- Orchestrator：负责任务编排、状态机和人工审批节点。
-- Product Agent：建立 SKU 产品事实卡和产品知识库。
-- Market Agent：整理英语市场、受众和内容机会。
-- Strategy Agent：确定内容角度、卖点优先级和 CTA。
-- Creative Agent：生成英文脚本、分镜、字幕、配音文案和拍摄清单。
-- Production Agent：匹配实拍素材、识别缺口、生成剪辑计划并调用视频处理能力。
-- Quality Agent：检查产品事实、视觉一致性、字幕、时长、画幅、音频和成片完整性。
+## Product architecture
 
-## MVP 人工控制点
+- Orchestrator：工作流编排、状态机、重试和审批
+- Product Agent：商品事实提取、来源追踪和审核
+- Market Agent：市场、受众和内容机会
+- Strategy Agent：营销目标、卖点、内容角度和 CTA
+- Creative Agent：脚本、分镜、字幕和拍摄清单
+- Production Agent：素材检索、镜头匹配、剪辑计划和渲染
+- Quality Agent：产品事实、视觉一致性和成片质量检查
 
-1. 商品事实审核
-2. 创意/脚本审核
-3. 最终视频审核
+Agent 输出结构化结果；事实校验、媒体渲染和质量规则尽量由确定性工具执行。模型与媒体服务通过 Adapter 接入。
 
-这三个节点不是缺陷，而是 MVP 阶段保证家具产品营销准确性的核心机制。
+## Repository status
 
-## 项目结构
+当前仓库已建立产品文档、Python 包骨架和基础 CI。Public Data Demo 的数据适配器、交互界面、完整视频生产链仍属于待实现工作；不要把现有骨架误认为完整 Demo 已经完成。
 
-~~~
-.
-├── .github/workflows/ci.yml
-├── docs/
-│   ├── 01-product-requirements.md
-│   ├── 02-technical-architecture.md
-│   ├── 03-agent-design.md
-│   ├── 04-data-model.md
-│   ├── 05-api-spec.md
-│   ├── 06-development-plan.md
-│   ├── 07-video-quality-standard.md
-│   └── 08-mvp-validation.md
-├── src/fma/
-│   ├── __init__.py
-│   ├── models.py
-│   └── pipeline.py
-├── tests/
-│   └── test_pipeline.py
-├── .env.example
-├── .gitignore
-└── pyproject.toml
-~~~
+## Documentation
 
-## 开发原则
+- [Product Requirements](docs/01-product-requirements.md)
+- [Technical Architecture](docs/02-technical-architecture.md)
+- [Agent Design](docs/03-agent-design.md)
+- [Data Model](docs/04-data-model.md)
+- [API Specification](docs/05-api-spec.md)
+- [Development Roadmap](docs/06-development-plan.md)
+- [Video Quality Standard](docs/07-video-quality-standard.md)
+- [Validation Plan](docs/08-mvp-validation.md)
+- [Public Data Demo Plan](docs/09-public-data-demo-plan.md)
 
-1. 先跑通一条视频生产链，再扩展 Agent 数量。
-2. 模块化单体优先，不在 MVP 阶段做微服务。
-3. 所有模型/视频服务使用 Adapter，避免锁定单一供应商。
-4. 产品事实和素材来源必须可追溯。
-5. AI 生成只能增强真实产品，不得改变产品真实结构、尺寸、材质或功能。
-6. SaaS 能力提前做数据边界设计，但不提前建设复杂多租户系统。
+## Development principles
 
-详细文档见 docs/。
+1. 完整产品是长期建设目标，Demo 是阶段性验证路径。
+2. 模块化单体优先，避免过早微服务化。
+3. Demo 与正式产品复用领域模型、服务边界和 Agent 输出契约。
+4. 数据来源、许可证、产品事实、素材权利和生成过程必须可追溯。
+5. 未经验证的产品属性不得作为事实性营销声明。
+6. 正式产品以真实商品和实拍素材为主，AI 只在受控范围内增强。
+7. 不把私有工厂资料、客户信息、账号凭据或 API Key 提交到公开仓库。
