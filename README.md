@@ -1,35 +1,57 @@
 # Furniture Marketing Agent
 
-家具行业端到端营销视频 Agent。**本仓库建设的是完整产品；Puc Data Demo 只是当前优先实施和验证的第一个可运行阶段，不是独立的一次性原型。**
+家具行业端到端营销视频 Agent。This repository is the complete product; the Public Data Demo is the first runnable vertical slice, not a throwaway prototype.
 
-面向家具工厂，优先服务 TikTok 英语市场，覆盖 B2B 与 B2C 营销场景。产品目标是把商品信息、素材管理、市场与营销策略、脚本分镜、视频生产、质量审核、发布管理和效果分析整合为可追溯的工作流。
-
-## Product vision
-
-完整产品能力：
-
-1. 商品与 SKU 管理、产品事实知识库
-2. 图片/视频素材资产管理与智能检索
-3. 市场研究、受众分析和营销策略
-4. 英文及多语言脚本、分镜、字幕和拍摄清单
-5. 实拍素材匹配、缺失镜头识别和 AI 场景增强
-6. 自动剪辑、渲染、质量检查和人工审核
-7. TikTok 等渠道的发布管理
-8. 内容表现、询盘和转化数据回流
-9. 面向未来 SaaS 的 Workspace、权限和租户隔离
+The product serves furniture factories selling B2B and B2C, prioritizing the English-language TikTok market. The long-term workflow covers product facts, asset management, marketing strategy, scripts/storyboards, video production, quality review, publishing, and performance feedback.
 
 ## Delivery strategy
 
-| 阶段 | 目标 | 数据 |
-|---|---|---|
-| Phase 0 | 完整产品设计与工程基础 | 示例/模拟数据 |
-| Phase 1 — Current | Public Data Demo：跑通端到端核心链路 | ABO 等公开数据 |
-| Phase 2 | 家具工厂内部试点 | 工厂授权 SKU 和实拍素材 |
-| Phase 3 | 完整内部产品 | 企业商品、素材、运营数据 |
-| Phase 4 | SaaS 产品化 | 多 Workspace、多用户和商业化能力 |
+| Phase | Goal |
+|---|---|
+| Phase 0 | Product design and engineering foundation |
+| Phase 1 — Current | Public-data Demo using ABO and other public data |
+| Phase 2 | Internal factory pilot using authorized SKUs and footage |
+| Phase 3 | Complete internal product |
+| Phase 4 | SaaS productization |
 
-**当前阶段边界：** Demo 使用公开商品图像生成动态展示视频时，必须明确标记为图片动画或 AI 场景广告，不得将其描述为工厂实拍视频。正式产品仍坚持“实拍素材为主，AI 场景增强为辅”。
+The intended production principle remains real footage first, AI scene enhancement second. AI-generated scenes must not be represented as factory-shot footage.
 
 ## Public Data Demo
 
-公开商品数据导入 → 商品事实卡及来源记录 → B2B/B2C 营销 brief → 英文脚本、分镜� 字幕 → 公开图片素材匹配 → 剪辑计划 → 竖屏 MPD muelito production
+Public product data → source-backed product facts → B2B/B2C brief → English script/storyboard → media matching → EDL → vertical MP4 → QC → human review → content pack.
+
+ABO is the current public-data test source. Review the exact dataset/image rights before redistribution or third-party AI processing. Do not send catalog or factory images to an external AI provider unless the relevant rights and provider terms have been checked.
+
+## Import and browse the public catalog
+
+```bash
+pip install -e ".[dev]"
+python -m fma.data_sources.abo --data-dir data/public/abo --limit 30
+fma-catalog
+```
+
+Open http://127.0.0.1:8000 to inspect products, source-backed facts, and media references. Missing attributes remain Unknown; facts are source-reported unless separately verified.
+
+## Generate a deterministic creative and local MP4
+
+```bash
+fma-creative --sku YOUR_SKU --audience B2C --objective product_consideration --angle product_overview --duration 30
+fma-render --sku YOUR_SKU --audience B2C --objective product_consideration --angle product_overview --duration 30
+```
+
+The local renderer is an offline fallback. It creates an animated catalog-still video, not a scene-generated advertisement or factory footage.
+
+## Optional AI scene-based furniture ad
+
+The first paid provider adapter targets Runway's Product Ad Recipe. It accepts 1–10 product images, product information, a creative concept, a vertical ratio, and a 4–15 second duration. Furniture categories map to bedroom, living-room, dining-room, home-office, entryway, or studio presets.
+
+```bash
+export RUNWAYML_API_SECRET="..."
+fma-runway-ad --sku YOUR_SKU --data-dir data/public/abo --output-dir data/ai-renders --duration 10 --scene-preset auto --confirm-external-processing-rights
+```
+
+Outputs: `product-ad.mp4` and `scene-plan.json`. This is a generated scene ad, not factory-shot footage. AI may alter product geometry; human review must compare silhouette, proportions, color, finish, hardware, drawer/door count, and visible construction against source images. Fewer than three images do not establish full multi-view or 360-degree coverage.
+
+The acknowledgement flag does not establish legal rights. External processing is disabled unless the operator explicitly confirms review and authorization. Ordinary CI uses mocked provider responses and never spends paid credits.
+
+See [AI Scene Video](docs/13-ai-scene-video.md).
