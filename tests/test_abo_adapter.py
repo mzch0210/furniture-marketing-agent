@@ -55,6 +55,40 @@ def test_furniture_filter_supports_product_type_and_node_path():
     assert not is_furniture_listing(listing("A2", "LAPTOP", "Laptop"))
 
 
+def test_furniture_filter_rejects_accessories_and_broad_parent_nodes():
+    accessory = listing("A3", "ABIS_HOME_IMPROVEMENT", "Furniture bumper pads")
+    accessory["node"] = [{
+        "path": "/Categories/Home Improvement/Furniture Accessories/Furniture Pads"
+    }]
+    assert not is_furniture_listing(accessory)
+
+    broad_parent = {"node": [{"path": "/Categories/Furniture"}]}
+    assert not is_furniture_listing(broad_parent)
+
+
+def test_furniture_filter_accepts_specific_furniture_leaf_even_if_type_is_generic():
+    sofa = listing("A4", "ABIS_HOME_IMPROVEMENT", "Sofa")
+    sofa["node"] = [{
+        "path": "/Categories/Furniture/Living Room Furniture/Sofas & Couches"
+    }]
+    assert is_furniture_listing(sofa)
+    product = normalize_listing(sofa, "listings/metadata/listings_0.json.gz")
+    assert product.category == "Sofas & Couches"
+
+
+def test_sample_excludes_furniture_accessories():
+    sofa = listing("A5", "SOFA", "Sofa")
+    accessory = listing("A6", "ABIS_HOME_IMPROVEMENT", "Adhesive bumper pads")
+    accessory["node"] = [{
+        "path": "/Categories/Home Improvement/Furniture Accessories/Furniture Pads"
+    }]
+    selected = select_furniture_sample([
+        (sofa, "listings/metadata/listings_0.json.gz"),
+        (accessory, "listings/metadata/listings_0.json.gz"),
+    ], limit=10)
+    assert [item.sku for item in selected] == ["A5"]
+
+
 def test_normalization_preserves_provenance_and_image_reference():
     product = normalize_listing(
         listing("B0001", "SOFA", "Sofa"),

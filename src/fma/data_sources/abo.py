@@ -72,7 +72,21 @@ FURNITURE_PRODUCT_TYPES = {
     "CONSOLE_TABLE", "SIDE_TABLE", "NIGHTSTAND", "DESK", "BED",
     "BED_FRAME", "HEADBOARD", "MATTRESS", "DRESSER", "CHEST_OF_DRAWERS",
     "CABINET", "BOOKCASE", "BOOKSHELF", "SHELF", "SHELVING_UNIT",
-    "WARDROBE", "CREDENZA", "TV_STAND", "VANITY", "FURNITURE",
+    "WARDROBE", "CREDENZA", "TV_STAND", "VANITY",
+}
+
+# ABO's browse taxonomy includes broad parent nodes such as "Furniture" and
+# accessory nodes such as "Furniture Pads". Only specific product-level leaf
+# categories are accepted when product_type is missing or generic.
+FURNITURE_NODE_LEAF_NAMES = {
+    "sofas & couches", "sofas", "couches", "sectional sofas", "sofa beds",
+    "loveseats", "recliners", "armchairs", "accent chairs", "living room chairs",
+    "dining chairs", "office chairs", "chairs", "bar stools", "stools", "benches",
+    "ottomans", "coffee tables", "end tables", "side tables", "console tables",
+    "dining tables", "tables", "desks", "computer desks", "writing desks",
+    "beds", "bed frames", "headboards", "nightstands", "dressers",
+    "chests of drawers", "wardrobes", "armoires", "bookcases", "bookshelves",
+    "shelving units", "cabinets", "tv stands", "entertainment centers", "vanities",
 }
 
 
@@ -506,11 +520,27 @@ def _node_names(raw: Mapping[str, Any]) -> list[str]:
     return names
 
 
+def _furniture_node_leaf(raw: Mapping[str, Any]) -> str | None:
+    for node_name in _node_names(raw):
+        segments = [part.strip() for part in re.split(r"[/\\>]+", node_name) if part.strip()]
+        if not segments:
+            continue
+        leaf = segments[-1]
+        if leaf.casefold() in FURNITURE_NODE_LEAF_NAMES:
+            return leaf
+    return None
+
+
 def is_furniture_listing(raw: Mapping[str, Any]) -> bool:
+    """Return True only for a known furniture product type or a specific furniture leaf.
+
+    Do not treat any taxonomy path containing the word "furniture" as a product:
+    that also admits accessories such as adhesive bumper pads and replacement parts.
+    """
     product_type = _product_type(raw)
     if product_type in FURNITURE_PRODUCT_TYPES:
         return True
-    return any("furniture" in node_name.casefold() for node_name in _node_names(raw))
+    return _furniture_node_leaf(raw) is not None
 
 
 def _source_shard_uri(shard_path: str) -> str:
@@ -537,8 +567,11 @@ def normalize_listing(
 
     product_type = _product_type(raw)
     node_names = _node_names(raw)
-    category = product_type or (
-        node_names[-1].rstrip("/").split("/")[-1] if node_names else "UNKNOWN"
+    furniture_leaf = _furniture_node_leaf(raw)
+    category = (
+        product_type if product_type in FURNITURE_PRODUCT_TYPES
+        else furniture_leaf or product_type
+        or (node_names[-1].rstrip("/").split("/")[-1] if node_names else "UNKNOWN")
     )
     source_uri = _source_shard_uri(shard_path)
     facts: list[CatalogProductFact] = []

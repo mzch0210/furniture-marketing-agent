@@ -56,7 +56,7 @@ pip install -e ".[dev]"
 python -m fma.data_sources.abo --data-dir data/public/abo --limit 30
 ```
 
-Outputs are written under gitignored `data/public/abo/processed/`: `products.json` and `dataset-manifest.json`. Use `--offline` after downloading source files. Missing attributes remain Unknown and facts are marked `source_reported`.
+Outputs are written under gitignored `data/public/abo/processed/`: `products.json` and `dataset-manifest.json`. Use `--offline` after downloading source files. Missing attributes remain Unknown and facts are marked `source_reported`. The furniture filter accepts explicit furniture product types or specific furniture taxonomy leaves; a path that merely contains the word "Furniture" (for example, furniture pads/accessories) is not enough. The E2E smoke test imports a larger sample and selects a furniture SKU with at least two source-backed catalog images.
 
 ## Browse the local public product catalog
 

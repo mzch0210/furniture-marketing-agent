@@ -35,7 +35,7 @@ jobs:
       - name: Run unit and render integration tests
         run: pytest -q
       - name: Import public ABO sample
-        run: python -m fma.data_sources.abo --data-dir "$RUNNER_TEMP/abo-data" --limit 10
+        run: python -m fma.data_sources.abo --data-dir "$RUNNER_TEMP/abo-data" --limit 200
       - name: Select a real SKU with a public image
         id: sku
         env:
@@ -46,11 +46,36 @@ jobs:
           from pathlib import Path
           root = Path(os.environ["ABO_DATA_DIR"]) / "processed"
           products = json.loads((root / "products.json").read_text(encoding="utf-8"))
-          product = next(
-              p for p in products
-              if any(a.get("role") == "main_image" and a.get("source_uri") for a in p.get("assets", []))
+
+          def image_assets(product):
+              return [
+                  asset for asset in product.get("assets", [])
+                  if asset.get("role") in {"main_image", "other_image"}
+                  and asset.get("source_uri")
+              ]
+
+          candidates = [
+              product for product in products
+              if product.get("category") not in {"UNKNOWN", "ABIS_HOME_IMPROVEMENT"}
+              and len(image_assets(product)) >= 2
+          ]
+          if not candidates:
+              raise SystemExit(
+                  "No furniture SKU with at least two source-backed catalog images "
+                  "was found in the imported sample."
+              )
+
+          product = max(
+              candidates,
+              key=lambda item: (
+                  len(image_assets(item)),
+                  bool(any(a.get("role") == "turntable_360" for a in item.get("assets", []))),
+                  bool(any(a.get("role") == "product_3d_model" for a in item.get("assets", []))),
+              ),
           )
           print(f"sku={product['sku']}")
+          print(f"category={product['category']}")
+          print(f"image_count={len(image_assets(product))}")
           PY
       - name: Render a real public product MP4
         run: |
