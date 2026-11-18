@@ -82,7 +82,7 @@ def test_unverified_fact_is_not_used_as_a_product_claim() -> None:
 def test_unknown_attribute_is_caveated_not_invented() -> None:
     product = sample_product()
     package = build_creative_package(product, request(angle=CreativeAngle.STYLE_SPOTLIGHT), {})
-    assert "not supplied in this catalog record" in package.script.full_voiceover
+    assert "does not supply style details" in package.script.full_voiceover
     assert "style" in " ".join(package.caveats).lower()
 
 
