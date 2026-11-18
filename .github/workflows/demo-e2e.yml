@@ -39,7 +39,7 @@ jobs:
       - name: Select a real SKU with a public image
         id: sku
         env:
-          ABO_DATA_DIR: \${{ runner.temp }}/abo-data
+          ABO_DATA_DIR: ${{ runner.temp }}/abo-data
         run: |
           python - <<'PY' >> "$GITHUB_OUTPUT"
           import json, os
@@ -55,7 +55,7 @@ jobs:
       - name: Render a real public product MP4
         run: |
           fma-render \
-            --sku "\${{ steps.sku.outputs.sku }}" \
+            --sku "${{ steps.sku.outputs.sku }}" \
             --data-dir "$RUNNER_TEMP/abo-data" \
             --output-dir "$RUNNER_TEMP/renders" \
             --creative-output-dir "$RUNNER_TEMP/creatives" \
@@ -66,7 +66,7 @@ jobs:
             > "$RUNNER_TEMP/render-result.json"
       - name: Verify rendered MP4 and provenance
         env:
-          RENDER_RESULT: \${{ runner.temp }}/render-result.json
+          RENDER_RESULT: ${{ runner.temp }}/render-result.json
         run: |
           python - <<'PY'
           import json, os
@@ -89,7 +89,7 @@ jobs:
         with:
           name: furniture-marketing-agent-public-demo
           path: |
-            \${{ runner.temp }}/renders/
-            \${{ runner.temp }}/creatives/
+            ${{ runner.temp }}/renders/
+            ${{ runner.temp }}/creatives/
           if-no-files-found: error
           retention-days: 14
