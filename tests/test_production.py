@@ -141,7 +141,7 @@ def test_render_video_creates_valid_vertical_h264_mp4(tmp_path):
         check=True, capture_output=True,
     )
     edl = EditDecisionList(
-        campaign_id="test-campaign", sku="SKU-101", duration_seconds=4,
+        campaign_id="test-campaign", sku="SKU-101", duration_seconds=4, media_basis="catalog_still_image_animation",
         shots=[
             EditDecisionShot(
                 shot_number=1, start_seconds=0, end_seconds=2,
@@ -174,7 +174,7 @@ def test_render_video_creates_valid_vertical_h264_mp4(tmp_path):
 
 def test_renderer_reports_missing_ffmpeg_clearly(tmp_path):
     edl = EditDecisionList(
-        campaign_id="test", sku="SKU-101", duration_seconds=1,
+        campaign_id="test", sku="SKU-101", duration_seconds=1, media_basis="generated_cards_with_missing_product_shots",
         shots=[EditDecisionShot(
             shot_number=1, start_seconds=0, end_seconds=1,
             visual_type="generated_title_card", match_status="matched",
