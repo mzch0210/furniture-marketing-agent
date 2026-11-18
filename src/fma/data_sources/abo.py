@@ -17,7 +17,7 @@ from datetime import datetime, timezone
 from pathlib import Path, PurePosixPath
 from typing import Any, Iterable, Iterator, Mapping
 
-from ...models import (
+from ..models import (
     CatalogAssetReference,
     CatalogProduct,
     CatalogProductFact,
