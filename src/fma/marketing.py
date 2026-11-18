@@ -212,7 +212,7 @@ def build_creative_package(
         feature_refs = selected_refs[:3]
     else:
         feature_voiceover = (
-            f"No source-reported {angle_label} detail is available in this catalog record. "
+            f"The public catalog record does not supply {angle_label} details. "
             "Do not fill the gap with a visual guess."
         )
         feature_text = f"{angle_label.title()} details: not supplied in this catalog record"
