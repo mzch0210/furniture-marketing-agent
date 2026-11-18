@@ -58,6 +58,19 @@ python -m fma.data_sources.abo --data-dir data/public/abo --limit 30
 
 Outputs are written under gitignored `data/public/abo/processed/`: `products.json` and `dataset-manifest.json`. Use `--offline` after downloading source files. Missing attributes remain Unknown and facts are marked `source_reported`.
 
+## Browse the local public product catalog
+
+After importing the ABO sample, start the read-only browser:
+
+~~~bash
+fma-catalog
+# or: uvicorn fma.app:app --host 127.0.0.1 --port 8000
+~~~
+
+Open http://127.0.0.1:8000. Search/filter the local SKU sample, inspect source-backed product facts and explicit Unknown attributes, preview official catalog image references, and review the dataset/license/attribution manifest. The browser reuses the shared catalog models and does not infer product attributes.
+
+See docs/10-public-catalog-browser.md.
+
 ## Product architecture
 
 - Orchestrator：工作流编排、状态机、重试和审批

@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Furniture Marketing Agent · Public Catalog</title>
+  <style>
+    :root { color-scheme: light; --ink:#1d2939; --muted:#667085; --line:#e4e7ec; --surface:#fff; --canvas:#f6f7f9; --blue:#175cd3; --blue-bg:#eff8ff; --green:#027a48; --green-bg:#ecfdf3; --amber:#b54708; --amber-bg:#fffaeb; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--canvas); color:var(--ink); font:15px/1.5 Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif; }
+    a { color:var(--blue); text-decoration:none; } a:hover { text-decoration:underline; }
+    header { background:#101828; color:#fff; padding:22px max(22px,calc((100vw - 1240px)/2)); }
+    header h1 { margin:0 0 4px; font-size:22px; } header p { margin:0; color:#d0d5dd; font-size:13px; }
+    main { max-width:1240px; margin:24px auto; padding:0 20px 48px; }
+    .toolbar,.panel,.product-card,.fact-card { background:var(--surface); border:1px solid var(--line); border-radius:12px; }
+    .toolbar { display:flex; flex-wrap:wrap; gap:10px; padding:14px; margin-bottom:18px; }
+    input,select,button { font:inherit; border:1px solid #d0d5dd; border-radius:8px; padding:10px 12px; background:white; color:var(--ink); }
+    input { flex:1; min-width:220px; } select { min-width:150px; }
+    button { cursor:pointer; background:#175cd3; color:white; border-color:#175cd3; font-weight:600; } button:disabled { opacity:.5; cursor:not-allowed; }
+    .layout { display:grid; grid-template-columns:minmax(300px, .95fr) minmax(420px,1.35fr); gap:18px; align-items:start; }
+    .panel { padding:18px; min-width:0; } .panel h2 { font-size:17px; margin:0 0 12px; }
+    .subtle { color:var(--muted); font-size:13px; } .results-head { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:12px; }
+    .product-list { display:grid; gap:10px; max-height:72vh; overflow:auto; padding-right:2px; }
+    .product-card { display:grid; grid-template-columns:104px 1fr; gap:12px; padding:10px; cursor:pointer; text-align:left; color:inherit; width:100%; }
+    .product-card:hover,.product-card.selected { border-color:#84adff; background:#f5f8ff; }
+    .thumb { width:104px; height:104px; border-radius:8px; object-fit:contain; background:#f2f4f7; }
+    .placeholder { width:104px; height:104px; display:grid; place-items:center; border-radius:8px; background:#f2f4f7; color:#98a2b3; font-size:12px; text-align:center; padding:8px; }
+    .product-name { font-weight:650; margin:2px 0 5px; } .meta { color:var(--muted); font-size:12px; }
+    .badge { display:inline-block; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:650; background:#f2f4f7; color:#344054; }
+    .badge.source_reported { color:var(--blue); background:var(--blue-bg); } .badge.unverified { color:var(--amber); background:var(--amber-bg); } .badge.factory_verified { color:var(--green); background:var(--green-bg); } .badge.rejected { color:#b42318; background:#fef3f2; }
+    .detail-top { display:grid; grid-template-columns:180px 1fr; gap:16px; margin-bottom:18px; }
+    .hero-image { width:180px; height:180px; object-fit:contain; border:1px solid var(--line); border-radius:10px; background:#f9fafb; }
+    .hero-placeholder { width:180px; height:180px; display:grid; place-items:center; text-align:center; color:#98a2b3; background:#f9fafb; border:1px solid var(--line); border-radius:10px; padding:12px; }
+    .detail-title { font-size:19px; line-height:1.35; margin:0 0 8px; } .detail-links { display:flex; flex-wrap:wrap; gap:12px; margin-top:10px; font-size:13px; }
+    .section { margin-top:20px; } .section h3 { margin:0 0 10px; font-size:14px; }
+    .facts { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
+    .fact-card { padding:10px 12px; min-width:0; } .fact-label { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; } .fact-value { margin-top:4px; overflow-wrap:anywhere; white-space:pre-wrap; }
+    .unknown { border-style:dashed; background:#fcfcfd; } .unknown .fact-value { color:var(--muted); font-style:italic; }
+    .fact-source { display:flex; flex-wrap:wrap; align-items:center; gap:7px; margin-top:7px; font-size:11px; color:var(--muted); }
+    .asset-list { display:flex; flex-wrap:wrap; gap:8px; } .asset-link { display:flex; gap:8px; align-items:center; padding:7px 9px; border:1px solid var(--line); border-radius:8px; font-size:12px; }
+    .manifest { margin-top:18px; } .manifest-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+    .manifest-note { margin-top:12px; padding:11px 12px; background:#fffaeb; border:1px solid #fedf89; border-radius:8px; color:#7a2e0e; font-size:12px; }
+    .empty,.error { padding:22px; border:1px dashed var(--line); border-radius:10px; color:var(--muted); text-align:center; }
+    .error { color:#b42318; background:#fef3f2; } .pagination { display:flex; justify-content:space-between; align-items:center; margin-top:12px; }
+    .pagination button { padding:7px 11px; font-size:12px; } .hidden { display:none!important; }
+    @media (max-width:850px) { .layout { grid-template-columns:1fr; } .product-list { max-height:430px; } }
+    @media (max-width:520px) { main { padding:0 12px 32px; } .detail-top { grid-template-columns:1fr; } .hero-image,.hero-placeholder { width:100%; height:210px; } .facts,.manifest-grid { grid-template-columns:1fr; } .product-card { grid-template-columns:84px 1fr; } .thumb,.placeholder { width:84px; height:84px; } }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Furniture Marketing Agent · Public Product Catalog</h1>
+  <p>Browse public furniture SKUs. Product facts remain source-attributed; missing values are shown as Unknown.</p>
+</header>
+<main>
+  <section class="toolbar" aria-label="Catalog filters">
+    <input id="search" type="search" placeholder="Search SKU, product name, brand or source facts…" autocomplete="off">
+    <select id="category"><option value="">All categories</option></select>
+    <select id="marketplace"><option value="">All marketplaces</option></select>
+    <button id="searchButton" type="button">Search</button>
+  </section>
+  <div class="layout">
+    <section class="panel">
+      <div class="results-head"><h2>Product catalog</h2><span id="resultCount" class="subtle">Loading…</span></div>
+      <div id="productList" class="product-list"><div class="empty">Loading local catalog…</div></div>
+      <div class="pagination">
+        <button id="previous" type="button" disabled>Previous</button>
+        <span id="pageLabel" class="subtle"></span>
+        <button id="next" type="button" disabled>Next</button>
+      </div>
+    </section>
+    <section class="panel" aria-live="polite">
+      <div id="detail"><div class="empty">Select a product to inspect its fact sheet.</div></div>
+    </section>
+  </div>
+  <section class="panel manifest" id="manifestPanel">
+    <h2>Dataset, license & attribution</h2>
+    <div id="manifestContent" class="subtle">Loading dataset manifest…</div>
+  </section>
+</main>
+<script>
+(function () {
+  "use strict";
+  var pageSize = 24;
+  var offset = 0;
+  var total = 0;
+  var selectedSku = null;
+  var searchTimer = null;
+  var $ = function (id) { return document.getElementById(id); };
+
+  function node(tag, className, value) {
+    var item = document.createElement(tag);
+    if (className) item.className = className;
+    if (value !== undefined && value !== null) item.textContent = String(value);
+    return item;
+  }
+  function formatValue(value) {
+    if (value === null || value === undefined || value === "") return "Unknown";
+    if (typeof value === "object") return JSON.stringify(value, null, 2);
+    return String(value);
+  }
+  function safeUrl(value) {
+    if (!value) return null;
+    try {
+      var parsed = new URL(value);
+      var hosts = [
+        "amazon-berkeley-objects.s3.us-east-1.amazonaws.com",
+        "creativecommons.org",
+        "registry.opendata.aws",
+        "github.com",
+        "www.amazon.science"
+      ];
+      if (parsed.protocol !== "https:" || hosts.indexOf(parsed.hostname) === -1) return null;
+      return parsed.href;
+    } catch (_) { return null; }
+  }
+  function link(label, url) {
+    var safe = safeUrl(url);
+    if (!safe) return null;
+    var a = node("a", "", label);
+    a.href = safe;
+    a.target = "_blank";
+    a.rel = "noopener noreferrer";
+    return a;
+  }
+  function addLinkRow(parent, label, url) {
+    var a = link(label, url);
+    if (a) parent.appendChild(a);
+  }
+  function imageFor(product, className) {
+    var asset = (product.assets || []).find(function (a) { return a.role === "main_image" && safeUrl(a.source_uri); });
+    if (!asset) return node("div", className === "thumb" ? "placeholder" : "hero-placeholder", "No image preview available");
+    var img = node("img", className);
+    img.src = safeUrl(asset.source_uri);
+    img.alt = "ABO catalog image for " + product.sku;
+    img.loading = "lazy";
+    img.referrerPolicy = "no-referrer";
+    img.onerror = function () {
+      var fallback = node("div", className === "thumb" ? "placeholder" : "hero-placeholder", "Image preview unavailable");
+      img.replaceWith(fallback);
+    };
+    return img;
+  }
+  function badge(status) {
+    return node("span", "badge " + (status || "unverified"), status || "unverified");
+  }
+  function renderProducts(payload) {
+    total = payload.total || 0;
+    $("resultCount").textContent = total + " products";
+    $("pageLabel").textContent = total ? (offset + 1) + "–" + Math.min(offset + pageSize, total) + " of " + total : "No results";
+    $("previous").disabled = offset <= 0;
+    $("next").disabled = offset + pageSize >= total;
+    var list = $("productList");
+    list.replaceChildren();
+    if (!payload.items || !payload.items.length) {
+      list.appendChild(node("div", "empty", "No matching products. Try a broader search or category."));
+      return;
+    }
+    payload.items.forEach(function (product) {
+      var card = node("button", "product-card" + (selectedSku === product.sku ? " selected" : ""));
+      card.type = "button";
+      card.appendChild(imageFor(product, "thumb"));
+      var info = node("div");
+      info.appendChild(node("div", "product-name", product.name));
+      info.appendChild(node("div", "meta", "SKU " + product.sku));
+      info.appendChild(node("div", "meta", (product.brand || "Brand unknown") + " · " + product.category));
+      info.appendChild(node("div", "meta", product.marketplace || "Marketplace unknown"));
+      card.appendChild(info);
+      card.addEventListener("click", function () { loadDetail(product.sku); });
+      list.appendChild(card);
+    });
+  }
+  function loadProducts() {
+    var params = new URLSearchParams();
+    params.set("q", $("search").value.trim());
+    params.set("limit", String(pageSize));
+    params.set("offset", String(offset));
+    if ($("category").value) params.set("category", $("category").value);
+    if ($("marketplace").value) params.set("marketplace", $("marketplace").value);
+    $("productList").replaceChildren(node("div", "empty", "Loading products…"));
+    fetch("/api/catalog/products?" + params.toString())
+      .then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) throw new Error(data.detail || "Unable to load products.");
+          return data;
+        });
+      })
+      .then(function (payload) {
+        renderProducts(payload);
+        fillFilters(payload);
+      })
+      .catch(function (error) {
+        $("productList").replaceChildren(node("div", "error", error.message));
+        $("resultCount").textContent = "Catalog unavailable";
+      });
+  }
+  function fillFilters(payload) {
+    var category = $("category");
+    var marketplace = $("marketplace");
+    var oldCategory = category.value;
+    var oldMarketplace = marketplace.value;
+    if (category.options.length === 1) {
+      (payload.categories || []).forEach(function (value) {
+        var option = node("option", "", value);
+        option.value = value;
+        category.appendChild(option);
+      });
+    }
+    if (marketplace.options.length === 1) {
+      (payload.marketplaces || []).forEach(function (value) {
+        var option = node("option", "", value);
+        option.value = value;
+        marketplace.appendChild(option);
+      });
+    }
+    category.value = oldCategory;
+    marketplace.value = oldMarketplace;
+  }
+  function factCard(label, value, status, source, sourceField) {
+    var card = node("div", "fact-card");
+    card.appendChild(node("div", "fact-label", label));
+    card.appendChild(node("div", "fact-value", formatValue(value)));
+    var meta = node("div", "fact-source");
+    meta.appendChild(badge(status));
+    if (source) {
+      var sourceLink = link("Open source shard", source);
+      if (sourceLink) meta.appendChild(sourceLink);
+    }
+    if (sourceField) meta.appendChild(node("span", "", "Field: " + sourceField));
+    card.appendChild(meta);
+    return card;
+  }
+  function renderDetail(data) {
+    var product = data.product;
+    var root = $("detail");
+    root.replaceChildren();
+    var top = node("div", "detail-top");
+    top.appendChild(imageFor(product, "hero-image"));
+    var intro = node("div");
+    intro.appendChild(node("h2", "detail-title", product.name));
+    intro.appendChild(node("div", "subtle", "SKU " + product.sku + " · " + product.category));
+    intro.appendChild(node("div", "subtle", "Brand: " + (product.brand || "Unknown") + " · Marketplace: " + (product.marketplace || "Unknown")));
+    var links = node("div", "detail-links");
+    addLinkRow(links, "ABO dataset page", data.dataset.official_page || "");
+    addLinkRow(links, "Open source metadata shard", product.source_uri);
+    intro.appendChild(links);
+    intro.appendChild(node("p", "subtle", "Source record ID: " + product.source_record_id));
+    intro.appendChild(node("p", "subtle", "Raw record SHA-256: " + product.raw_record_sha256));
+    top.appendChild(intro);
+    root.appendChild(top);
+
+    if (product.description) {
+      var description = node("div", "section");
+      description.appendChild(node("h3", "", "Source description / catalog bullet points"));
+      description.appendChild(node("div", "fact-card", product.description));
+      root.appendChild(description);
+    }
+
+    var factsSection = node("div", "section");
+    factsSection.appendChild(node("h3", "", "Source-backed product facts"));
+    var facts = node("div", "facts");
+    (product.facts || []).forEach(function (fact) {
+      var label = fact.key.replace(/_/g, " ");
+      facts.appendChild(factCard(label, fact.value, fact.verification_status, fact.source_uri, fact.source_field));
+    });
+    if (!facts.children.length) facts.appendChild(node("div", "empty", "No structured facts were supplied for this product."));
+    factsSection.appendChild(facts);
+    root.appendChild(factsSection);
+
+    var unknownSection = node("div", "section");
+    unknownSection.appendChild(node("h3", "", "Unknown attributes — not supplied by the source"));
+    var unknowns = node("div", "facts");
+    (data.unknown_attributes || []).forEach(function (attribute) {
+      var card = node("div", "fact-card unknown");
+      card.appendChild(node("div", "fact-label", attribute.label));
+      card.appendChild(node("div", "fact-value", "Unknown"));
+      unknowns.appendChild(card);
+    });
+    if (!unknowns.children.length) unknowns.appendChild(node("div", "subtle", "All tracked attributes have source entries; this does not mean they are factory-verified."));
+    unknownSection.appendChild(unknowns);
+    root.appendChild(unknownSection);
+
+    var assetSection = node("div", "section");
+    assetSection.appendChild(node("h3", "", "Source asset references"));
+    var assetList = node("div", "asset-list");
+    (product.assets || []).forEach(function (asset) {
+      var assetLink = link(asset.role + " · " + asset.asset_id, asset.source_uri);
+      var item = node("div", "asset-link");
+      if (assetLink) item.appendChild(assetLink);
+      else item.appendChild(node("span", "", asset.role + " · " + asset.asset_id + " (no image path in metadata index)"));
+      if (asset.width && asset.height) item.appendChild(node("span", "meta", asset.width + "×" + asset.height));
+      assetList.appendChild(item);
+    });
+    if (!assetList.children.length) assetList.appendChild(node("span", "subtle", "No image or media references in this record."));
+    assetSection.appendChild(assetList);
+    root.appendChild(assetSection);
+
+    selectedSku = product.sku;
+  }
+  function loadDetail(sku) {
+    $("detail").replaceChildren(node("div", "empty", "Loading product fact sheet…"));
+    fetch("/api/catalog/products/" + encodeURIComponent(sku))
+      .then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) throw new Error(data.detail || "Unable to load product.");
+          return data;
+        });
+      })
+      .then(function (data) {
+        selectedSku = data.product.sku;
+        renderDetail(data);
+        loadProducts();
+      })
+      .catch(function (error) {
+        $("detail").replaceChildren(node("div", "error", error.message));
+      });
+  }
+  function loadManifest() {
+    fetch("/api/catalog/manifest")
+      .then(function (response) {
+        return response.json().then(function (data) {
+          if (!response.ok) throw new Error(data.detail || "Manifest unavailable.");
+          return data;
+        });
+      })
+      .then(function (manifest) {
+        var panel = $("manifestContent");
+        panel.replaceChildren();
+        var license = manifest.license || {};
+        var dataset = manifest.dataset || {};
+        var grid = node("div", "manifest-grid");
+        var left = node("div", "fact-card");
+        left.appendChild(node("div", "fact-label", "Dataset"));
+        left.appendChild(node("div", "fact-value", dataset.name || "Unknown"));
+        addLinkRow(left, "Official dataset page", dataset.official_page || "");
+        var right = node("div", "fact-card");
+        right.appendChild(node("div", "fact-label", "License"));
+        right.appendChild(node("div", "fact-value", (license.license_id || "Unknown") + " · " + (license.verification_status || "not verified")));
+        addLinkRow(right, "Official license text", license.license_url || "");
+        grid.appendChild(left);
+        grid.appendChild(right);
+        panel.appendChild(grid);
+        if (manifest.attribution || license.attribution) {
+          panel.appendChild(node("p", "", "Attribution: " + (manifest.attribution || license.attribution)));
+        }
+        if (manifest.paper_citation) panel.appendChild(node("p", "subtle", "Suggested paper citation: " + manifest.paper_citation));
+        var caveat = license.aws_registry_cached_rendered_page_observation || license.third_party_rights_note;
+        if (caveat) panel.appendChild(node("div", "manifest-note", caveat));
+        if (license.no_endorsement_notice) panel.appendChild(node("p", "subtle", license.no_endorsement_notice));
+      })
+      .catch(function (error) {
+        $("manifestContent").replaceChildren(node("div", "error", error.message));
+      });
+  }
+  $("searchButton").addEventListener("click", function () { offset = 0; loadProducts(); });
+  $("search").addEventListener("input", function () {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(function () { offset = 0; loadProducts(); }, 250);
+  });
+  $("category").addEventListener("change", function () { offset = 0; loadProducts(); });
+  $("marketplace").addEventListener("change", function () { offset = 0; loadProducts(); });
+  $("previous").addEventListener("click", function () { offset = Math.max(0, offset - pageSize); loadProducts(); });
+  $("next").addEventListener("click", function () { if (offset + pageSize < total) { offset += pageSize; loadProducts(); } });
+  loadProducts();
+  loadManifest();
+})();
+</script>
+</body>
+</html>
