@@ -16,6 +16,7 @@ dependencies = [
 [project.scripts]
 fma-abo = "fma.data_sources.abo:main"
 fma-catalog = "fma.app:run"
+fma-creative = "fma.marketing:main"
 
 [project.optional-dependencies]
 dev = [

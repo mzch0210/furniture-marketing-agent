@@ -100,3 +100,128 @@ class CatalogProduct(BaseModel):
     raw_record_sha256: str
     facts: list[CatalogProductFact] = Field(default_factory=list)
     assets: list[CatalogAssetReference] = Field(default_factory=list)
+
+
+class MarketingAudience(str, Enum):
+    B2B = "B2B"
+    B2C = "B2C"
+
+
+class CampaignObjective(str, Enum):
+    BRAND_AWARENESS = "brand_awareness"
+    PRODUCT_CONSIDERATION = "product_consideration"
+    LEAD_GENERATION = "lead_generation"
+    TRAFFIC = "traffic"
+
+
+class CreativeAngle(str, Enum):
+    PRODUCT_OVERVIEW = "product_overview"
+    COLOR_SPOTLIGHT = "color_spotlight"
+    MATERIAL_SPOTLIGHT = "material_spotlight"
+    DIMENSION_SPOTLIGHT = "dimension_spotlight"
+    BRAND_SPOTLIGHT = "brand_spotlight"
+    STYLE_SPOTLIGHT = "style_spotlight"
+
+
+class CampaignCreativeRequest(BaseModel):
+    sku: str = Field(min_length=1, max_length=256)
+    audience: MarketingAudience
+    objective: CampaignObjective
+    angle: CreativeAngle = CreativeAngle.PRODUCT_OVERVIEW
+    target_market: str = Field(default="United States", min_length=2, max_length=100)
+    platform: str = Field(default="TikTok", min_length=2, max_length=40)
+    language: str = Field(default="en-US", min_length=2, max_length=20)
+    duration_seconds: int = Field(default=30, ge=15, le=60)
+    campaign_id: str | None = Field(default=None, max_length=120)
+
+
+class ProductClaimReference(BaseModel):
+    fact_key: str
+    value: Any
+    source_dataset: str
+    source_record_id: str
+    source_uri: str
+    source_field: str
+    verification_status: FactVerificationStatus
+
+
+class CreativeBrief(BaseModel):
+    campaign_id: str
+    sku: str
+    product_name: str
+    audience: MarketingAudience
+    objective: CampaignObjective
+    angle: CreativeAngle
+    target_market: str
+    platform: str
+    language: str
+    duration_seconds: int = Field(ge=15, le=60)
+    message_strategy: str
+    primary_cta: str
+    research_note: str
+    approval_required: bool = True
+
+
+class CreativeScriptSegment(BaseModel):
+    segment_id: str
+    role: str
+    start_seconds: int = Field(ge=0)
+    end_seconds: int = Field(gt=0)
+    voiceover: str
+    on_screen_text: str
+    fact_refs: list[ProductClaimReference] = Field(default_factory=list)
+
+
+class CreativeScript(BaseModel):
+    hook: str
+    segments: list[CreativeScriptSegment]
+    full_voiceover: str
+    on_screen_copy: list[str] = Field(default_factory=list)
+
+
+class StoryboardShot(BaseModel):
+    shot_number: int = Field(ge=1)
+    start_seconds: int = Field(ge=0)
+    end_seconds: int = Field(gt=0)
+    purpose: str
+    visual_direction: str
+    candidate_asset_ids: list[str] = Field(default_factory=list)
+    asset_match_status: str
+    source_fact_refs: list[ProductClaimReference] = Field(default_factory=list)
+    on_screen_text: str
+    voiceover: str
+    transition: str
+    production_note: str
+
+
+class CreativePackage(BaseModel):
+    template_version: str
+    generation_mode: str
+    publication_status: str
+    brief: CreativeBrief
+    script: CreativeScript
+    storyboard: list[StoryboardShot]
+    caption: str
+    hashtags: list[str] = Field(default_factory=list)
+    claim_reference_index: list[ProductClaimReference] = Field(default_factory=list)
+    caption_fact_refs: list[ProductClaimReference] = Field(default_factory=list)
+    caveats: list[str] = Field(default_factory=list)
+    source_dataset: str
+    source_record_id: str
+    source_uri: str
+    dataset_name: str
+    attribution: str
+    license_id: str
+    license_url: str
+    candidate_asset_ids: list[str] = Field(default_factory=list)
+
+
+class CreativeExportArtifact(BaseModel):
+    name: str
+    path: str
+    size_bytes: int = Field(ge=0)
+
+
+class CreativeGenerationResult(BaseModel):
+    package: CreativePackage
+    exports: list[CreativeExportArtifact] = Field(default_factory=list)

@@ -7,17 +7,26 @@ from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 
 from .catalog import CatalogDataError, LocalProductCatalog
+from .marketing import CampaignCreativeService, ProductNotFoundError
+from .models import CampaignCreativeRequest
 
 STATIC_PAGE = Path(__file__).parent / "static" / "catalog.html"
 
 
-def create_app(data_dir: str | Path | None = None) -> FastAPI:
+def create_app(
+    data_dir: str | Path | None = None,
+    output_dir: str | Path | None = None,
+) -> FastAPI:
     app = FastAPI(
         title="Furniture Marketing Agent — Public Product Catalog",
         description="Local, read-only browser for source-traceable public furniture products.",
         version="0.1.0",
     )
     app.state.catalog = LocalProductCatalog(data_dir)
+    app.state.creative_service = CampaignCreativeService(
+        app.state.catalog,
+        output_dir=output_dir or "data/outputs/creatives",
+    )
 
     @app.get("/", include_in_schema=False)
     def catalog_home() -> FileResponse:
@@ -60,6 +69,18 @@ def create_app(data_dir: str | Path | None = None) -> FastAPI:
             return app.state.catalog.fact_sheet(product)
         except CatalogDataError as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
+
+    @app.post("/api/creative/generate")
+    def generate_creative(request: CampaignCreativeRequest) -> dict:
+        try:
+            result = app.state.creative_service.generate(request)
+            return result.model_dump(mode="json")
+        except ProductNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        except CatalogDataError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except ValueError as exc:
+            raise HTTPException(status_code=422, detail=str(exc)) from exc
 
     @app.get("/api/catalog/manifest")
     def get_manifest() -> dict:
