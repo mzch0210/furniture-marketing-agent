@@ -225,3 +225,82 @@ class CreativeExportArtifact(BaseModel):
 class CreativeGenerationResult(BaseModel):
     package: CreativePackage
     exports: list[CreativeExportArtifact] = Field(default_factory=list)
+
+
+class MatchedMediaAsset(BaseModel):
+    asset_id: str
+    role: str
+    media_type: str
+    source_dataset: str
+    source_record_id: str
+    source_uri: str
+    downloaded_uri: str
+    local_path: str
+    sha256: str
+    size_bytes: int = Field(ge=0)
+    source_variant: str
+    license_id: str
+    width: int | None = None
+    height: int | None = None
+
+
+class EditDecisionShot(BaseModel):
+    shot_number: int = Field(ge=1)
+    start_seconds: int = Field(ge=0)
+    end_seconds: int = Field(gt=0)
+    visual_type: str
+    match_status: str
+    asset_id: str | None = None
+    local_asset_path: str | None = None
+    source_uri: str | None = None
+    source_fact_refs: list[ProductClaimReference] = Field(default_factory=list)
+    on_screen_text: str
+    voiceover: str
+    transition: str = "clean_cut"
+    reshoot_required: bool = False
+    reshoot_note: str | None = None
+
+
+class EditDecisionList(BaseModel):
+    edl_version: str = "fma-edl-v1.0.0"
+    campaign_id: str
+    sku: str
+    duration_seconds: int = Field(ge=1)
+    width: int = Field(default=1080, gt=0)
+    height: int = Field(default=1920, gt=0)
+    fps: int = Field(default=30, gt=0)
+    container: str = "mp4"
+    video_codec: str = "h264"
+    audio_policy: str = "silent_no_unlicensed_music"
+    media_basis: str
+    shots: list[EditDecisionShot]
+    assets: list[MatchedMediaAsset] = Field(default_factory=list)
+    source_dataset: str
+    source_record_id: str
+    attribution: str
+    license_id: str
+    license_url: str
+    rights_review_required: bool = False
+    warnings: list[str] = Field(default_factory=list)
+
+
+class VideoRenderReport(BaseModel):
+    status: str
+    output_path: str
+    file_size_bytes: int = Field(ge=0)
+    sha256: str
+    duration_seconds: float
+    width: int
+    height: int
+    fps: float
+    video_codec: str
+    audio_codec: str | None = None
+    ffmpeg_version: str
+    rendered_at: str
+
+
+class VideoProductionResult(BaseModel):
+    package: CreativePackage
+    edl: EditDecisionList
+    render_report: VideoRenderReport
+    exports: list[CreativeExportArtifact] = Field(default_factory=list)
