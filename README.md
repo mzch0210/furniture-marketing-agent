@@ -71,6 +71,18 @@ Open http://127.0.0.1:8000. Search/filter the local SKU sample, inspect source-b
 
 See docs/10-public-catalog-browser.md.
 
+## Generate a deterministic marketing creative
+
+Generate an English B2B/B2C brief, hook, timed voiceover, on-screen copy, storyboard, subtitles and caption without a paid LLM key:
+
+~~~bash
+fma-creative --sku YOUR_IMPORTED_SKU --audience B2B --objective lead_generation --angle product_overview --duration 30
+~~~
+
+Exports are written under gitignored data/outputs/creatives/. The generator only uses eligible source-backed product facts, records fact provenance and leaves unknown attributes unclaimed. Human review is required before publication.
+
+See docs/11-campaign-creative-generation.md.
+
 ## Product architecture
 
 - Orchestrator：工作流编排、状态机、重试和审批

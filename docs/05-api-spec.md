@@ -8,6 +8,9 @@ Base path for the future service API: /api/v1. This document describes the targe
 - POST /products/{product_id}/facts — add sourced candidate fact.
 - POST /products/{product_id}/facts/{fact_id}/verify — approve/reject a fact.
 
+### Implemented Public Data Demo creative endpoint
+- POST /api/creative/generate — generate a deterministic B2B/B2C creative package from a local public SKU and export JSON, Markdown script/storyboard, SRT, caption and attribution files. Requires no paid LLM key.
+
 ## Assets
 - POST /assets/upload-intents — request upload location.
 - POST /assets — register uploaded asset and metadata.

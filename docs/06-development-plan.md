@@ -26,9 +26,9 @@ Target: one local application can produce a complete, reviewable furniture marke
 Exit criteria: browse/select a public SKU and inspect source-backed facts; unknown attributes remain unknown.
 
 ### Sprint 2 — Campaign and creative
-- Implement B2B/B2C campaign brief.
-- Generate English hook, script, voiceover, on-screen text, CTA and storyboard.
-- Provide deterministic template mode with no paid API requirement.
+- [x] Implement B2B/B2C campaign brief and deterministic English creative templates (Issue #11).
+- [x] Generate English hook, script, voiceover, on-screen text, CTA, timed storyboard and SRT/caption exports (Issue #11).
+- [x] Provide deterministic template mode with no paid API requirement.
 - Keep optional LLM integration behind an adapter.
 - Link factual claims to ProductFact IDs.
 
