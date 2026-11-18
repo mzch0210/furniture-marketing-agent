@@ -1,26 +1,72 @@
-# MVP Product Requirements
+# Product Requirements
 
-## Positioning
-An internal workflow system for furniture manufacturers creating TikTok short-form videos for English-language markets. Initial use cases cover both B2B and B2C. The product is not a generic text-to-video generator: it connects approved SKU facts, real footage, localized creative, editing, quality review and performance feedback.
+## 1. Product positioning
 
-## Production principles
-- Real product footage first; AI scene enhancement second.
-- Product facts must have a source and verification status.
-- Never invent dimensions, materials, certifications, load limits, accessories, MOQ or delivery promises.
-- Human approval remains required for product facts, creative and final video.
-- Start as an internal tool; consider SaaS only after the workflow is validated.
+Furniture Marketing Agent 是面向家具工厂的端到端营销视频生产与运营系统，优先支持 TikTok 英语市场，服务 B2B 和 B2C 两类营销目标。
 
-## MVP workflow
-SKU intake → fact review → asset library → marketing brief → English script/storyboard → footage matching → missing-shot list → optional enhancement → FFmpeg render → automated QC → human approval → manual TikTok publication → metrics and inquiry log.
+它不是通用的 text-to-video 工具，而是围绕家具 SKU、可信产品事实、可复用素材、营销策略、视频生产和发布效果建立的工作流产品。
 
-## P0
-Product facts; SKU-linked media assets; B2B/B2C campaign brief; script and storyboard; footage matching; reshoot checklist; deterministic rendering; QC; approval history; manual publication log; performance snapshots.
+## 2. Target users and use cases
 
-## P1
-Creative variants, A/B testing, AI voiceover, localization, better semantic search, platform analytics integrations, multi-workspace SaaS and billing.
+- 工厂/品牌负责人：管理 SKU、产品信息、营销目标和内容产能。
+- 内容运营人员：策划选题、生成脚本、安排拍摄、剪辑和发布。
+- 视频制作人员：检索素材、匹配镜头、执行剪辑和质量检查。
+- B2B 采购受众：关注可被证实的产品规格、工艺、定制与供应能力。
+- B2C 消费受众：关注外观、使用场景、空间适配和经证实的产品功能。
 
-## Out of scope for MVP
-Foundation video model, autonomous publishing/comment replies, microservices, full SaaS billing/permissions and replacing real footage with synthetic product imagery.
+## 3. Full product capability scope
 
-## Pilot metrics
-Production time, editing minutes, revision count, factual errors, visual mismatch, QC pass rate, asset reuse, views/retention/engagement and qualified inquiries. Do not use one video's views as the only success measure.
+1. 商品与 SKU：商品目录、属性、变体、产品事实及审批。
+2. 素材资产：图片/视频上传、标签、元数据、权利状态、检索和复用。
+3. 市场研究：目标国家、受众、竞品、趋势和内容机会。
+4. 营销策略：目标、受众、卖点排序、内容角度、CTA 和活动规划。
+5. 创意生产：多版本脚本、分镜、字幕、配音文案和拍摄清单。
+6. 视频生产：实拍素材匹配、镜头缺口识别、AI 场景增强、剪辑和渲染。
+7. 质量管理：产品事实校验、视觉一致性、字幕/音频/技术质量和人工审批。
+8. 发布管理：TikTok 等渠道的发布记录、账号和内容版本管理。
+9. 数据分析：播放、留存、互动、询盘、线索和转化回流。
+10. SaaS 基础：Workspace、用户、角色、权限、数据隔离和计费（后续阶段）。
+
+## 4. Product principles and guardrails
+
+- 产品事实必须保留来源、采集时间和验证状态。
+- 未验证的尺寸、材料、认证、承重、功能、MOQ、交期和商业承诺不得写成确定事实。
+- AI 场景增强不得误导性改变产品结构、比例、颜色、材质、功能或配件。
+- 生产链保留商品事实、创意和最终视频三个主要人工审批节点。
+- 正式业务优先使用工厂授权的真实商品信息和实拍素材。
+- 每条成片都应追溯到 SKU、事实来源、素材、脚本版本、渲染参数、质检结果和发布记录。
+
+## 5. Delivery strategy: full product vs current Demo
+
+完整产品范围不会因 Demo 而缩减。当前先实现一个纵向切片，验证核心链路和架构可行性。
+
+### Public Data Demo — current implementation scope
+
+- 导入并浏览公开家具商品数据。
+- 建立带来源和许可证信息的商品事实卡。
+- 选择 B2B/B2C 受众、营销目标和内容角度。
+- 生成英文 brief、脚本、分镜、字幕和 CTA。
+- 将分镜匹配到公开商品图片或可用的 360° 序列。
+- 标记缺失的真实视频镜头；生成剪辑计划。
+- 生成竖屏 MP4：支持 360° 序列展示，或明确标注的静态图像动态剪辑。
+- 自动技术质检、事实来源检查和人工审核状态。
+- 导出视频、脚本、字幕、caption、hashtags、来源与质检报告。
+
+### Later production scope
+
+真实素材上传与管理、企业 SKU 导入、完整市场研究、持续内容运营、TikTok 发布集成、效果回流、团队协作和 SaaS 商业化逐步实施。
+
+## 6. Demo acceptance criteria
+
+- 新用户可按 README 在本地启动。
+- 无付费模型 API Key 时仍可使用确定性模板模式跑通主链路。
+- 至少一个公开家具 SKU 可完成从数据导入到视频导出的流程。
+- 每个商品事实和媒体素材保留来源、许可和署名信息。
+- 缺失属性明确显示 Unknown，不推断或编造。
+- 生成的 MP4 可播放，且输出技术质检报告。
+- UI 明确区分图片动画、360° 商品展示和真实视频素材。
+- 自动化测试覆盖数据映射、事实过滤、脚本结构、剪辑计划和 QC。
+
+## 7. Non-goals for the current Demo
+
+不实现完整 SaaS、多租户计费、自动发布、私有工厂数据接入、全量 ABO 下载或自研基础视频模型。它们仍属于完整产品后续路线，而不是被永久删除的产品需求。
