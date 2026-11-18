@@ -47,9 +47,9 @@ def product(category: str = "DRESSER") -> CatalogProduct:
 
 def test_auto_scene_preset_maps_furniture_categories():
     assert resolve_scene_preset("DRESSER").key == "bedroom"
-    assert resolve_scene_preset("SOFA").wey == "living_room"
-    assert resolve_scene_preset("DINING_TABLE").wey == "dining_room"
-    assert resolve_scene_preset("OFFICE_CHAIR").wey == "home_office"
+    assert resolve_scene_preset("SOFA").key == "living_room"
+    assert resolve_scene_preset("DINING_TABLE").key == "dining_room"
+    assert resolve_scene_preset("OFFICE_CHAIR").key == "home_office"
     assert resolve_scene_preset("UNKNOWN").key == "studio"
 
 
@@ -113,7 +113,7 @@ def test_runway_product_ad_submits_polls_and_downloads_mp4(tmp_path: Path, monke
             return FakeResponse(mp4, url=url, content_type="video/mp4")
         raise AssertionError(f"Unexpected URL: {url}")
 
-    monkeypatch.setattr("fma.video_ai.runway.ourllib.request.urlopen", fake_urlopen)
+    monkeypatch.setattr("fma.video_ai.runway.urllib.request.urlopen", fake_urlopen)
     client = RunwayProductAdClient(api_key="test-key", poll_interval_seconds=0, max_polls=2)
     output = tmp_path / "product-ad.mp4"
     result = client.generate_product_ad(
