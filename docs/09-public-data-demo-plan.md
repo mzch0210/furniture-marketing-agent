@@ -16,7 +16,7 @@ Official dataset: https://amazon-berkeley-objects.s3.us-east-1.amazonaws.com/ind
 AWS Open Data Registry: https://registry.opendata.aws/amazon-berkeley-objects/  
 Amazon Science description: https://www.amazon.science/code-and-datasets/amazon-berkeley-objects-abo-dataset
 
-The current official dataset page identifies the license as Creative Commons Attribution 4.0 International (CC BY 4.0). AWS Open Data Registry notes that the license was updated from CC BY-NC to CC BY in 2023. Old papers, blog posts or archived announcements may still mention the earlier license; use the current official dataset page and the license file distributed with the exact downloaded archive as the source of truth.
+The current official dataset landing page identifies the downloadable archives as Creative Commons Attribution 4.0 International (CC BY 4.0). However, the AWS Open Data Registry page currently surfaced in research still displays CC BY-NC 4.0, while another AWS Marketplace page mentions the 2023 update to CC BY. This is a material metadata inconsistency. Before redistributing assets or using them in commercial demonstrations, inspect the LICENSE file inside the exact archive being downloaded and obtain clarification from the dataset owner or qualified legal review if the discrepancy remains. The Demo implementation must record the exact archive/license evidence and must not present commercial-use clearance as settled solely from one page.
 
 Dataset facts published by the official source:
 - 147,702 product listings and 398,212 unique catalog images.
@@ -62,7 +62,7 @@ Every Demo export must include:
 - retrieval date and any resizing/cropping/editing performed
 - statement that the dataset provider does not endorse the Demo or generated marketing copy
 
-The dataset license does not prove that vendor-provided product facts are accurate, and it does not imply endorsement by Amazon or the product brand. Do not imply affiliation or endorsement. Check any additional brand/trademark or third-party rights questions separately before commercial use.
+The dataset license does not prove that vendor-provided product facts are accurate, and it does not imply endorsement by Amazon or the product brand. Do not imply affiliation or endorsement. Check any additional brand/trademark or third-party rights questions separately before commercial use. Until the CC BY / CC BY-NC discrepancy is resolved for the exact downloaded archive, keep the dataset assets in a non-commercial technical evaluation path and do not ship them as a commercial customer asset pack.
 
 ## 4. Product selection and fact handling
 
