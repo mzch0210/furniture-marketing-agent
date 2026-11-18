@@ -45,7 +45,7 @@
 → 人工审核
 → 导出视频和营销内容包
 
-首选数据源为 [Amazon Berkeley Objects (ABO)](https://amazon-berkeley-objects.s3.us-east-1.amazonaws.com/index.html)。先读取商品列表，只下载入选 SKU 所需的图片/360°素材；不下载完整图片、360°或 3D 大型归档。数据许可、署名和下载说明见 [Public Data Demo Plan](docs/09-public-data-demo-plan.md)。
+首选技术验证数据源为 [Amazon Berkeley Objects (ABO)](https://amazon-berkeley-objects.s3.us-east-1.amazonaws.com/index.html)。先读取商品列表，只下载入选 SKU 所需的图片/360°素材；不下载完整图片、360°或 3D 大型归档。注意官方落地页与 AWS Registry 当前显示的 CC BY / CC BY-NC 元数据存在不一致；在核对具体归档 LICENSE 并获得必要澄清前，不将该素材用于商业再分发。详见 [Public Data Demo Plan](docs/09-public-data-demo-plan.md)。
 
 ## Product architecture
 
