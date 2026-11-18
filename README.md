@@ -47,6 +47,17 @@
 
 首选技术验证数据源为 [Amazon Berkeley Objects (ABO)](https://amazon-berkeley-objects.s3.us-east-1.amazonaws.com/index.html)。先读取商品列表，只下载入选 SKU 所需的图片/360°素材；不下载完整图片、360°或 3D 大型归档。注意官方落地页与 AWS Registry 当前显示的 CC BY / CC BY-NC 元数据存在不一致；在核对具体归档 LICENSE 并获得必要澄清前，不将该素材用于商业再分发。详见 [Public Data Demo Plan](docs/09-public-data-demo-plan.md)。
 
+## Import the public ABO furniture catalog
+
+The adapter downloads the official listings archive, license text and compressed image metadata index. It does not download large image, spin or 3D archives.
+
+```bash
+pip install -e ".[dev]"
+python -m fma.data_sources.abo --data-dir data/public/abo --limit 30
+```
+
+Outputs are written under gitignored `data/public/abo/processed/`: `products.json` and `dataset-manifest.json`. Use `--offline` after downloading source files. Missing attributes remain Unknown and facts are marked `source_reported`.
+
 ## Product architecture
 
 - Orchestrator：工作流编排、状态机、重试和审批

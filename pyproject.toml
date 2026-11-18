@@ -13,6 +13,9 @@ dependencies = [
   "uvicorn[standard]>=0.30,<1.0",
 ]
 
+[project.scripts]
+fma-abo = "fma.data_sources.abo:main"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8.0,<9.0",

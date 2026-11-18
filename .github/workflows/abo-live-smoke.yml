@@ -1,0 +1,46 @@
+name: ABO Live Dataset Smoke
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "src/fma/data_sources/**"
+      - "src/fma/models.py"
+      - "tests/test_abo_adapter.py"
+      - ".github/workflows/abo-live-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-public-dataset:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install .
+      - name: Download and inspect official ABO archive
+        run: python -m fma.data_sources.abo --data-dir "$RUNNER_TEMP/abo-data" --limit 5
+      - name: Assert live import outputs
+        env:
+          ABO_DATA_DIR: ${{ runner.temp }}/abo-data
+        run: |
+          python - <<'PY'
+          import json, os
+          from pathlib import Path
+          root = Path(os.environ["ABO_DATA_DIR"]) / "processed"
+          products = json.loads((root / "products.json").read_text())
+          manifest = json.loads((root / "dataset-manifest.json").read_text())
+          assert products
+          assert manifest["archive"]["listing_shard_count"] >= 1
+          assert manifest["license"]["verification_status"] == "verified_from_official_license_file"
+          assert manifest["sample"]["selected_count"] == len(products)
+          print(f"Imported {len(products)} products from {manifest['archive']['listing_shard_count']} shards")
+          PY
