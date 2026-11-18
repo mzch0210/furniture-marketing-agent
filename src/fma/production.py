@@ -298,7 +298,11 @@ def _find_binary(binary: str | None, name: str) -> str:
         )
     resolved = shutil.which(candidate) or candidate
     if not Path(resolved).is_file() and shutil.which(resolved) is None:
-        raise ProductionError(f"Configured executable does not exist: {resolved}")
+        raise ProductionError(
+            f"Configured {name} executable does not exist: {resolved}. "
+            "Install FFmpeg (including ffprobe) and ensure it is on PATH. "
+            "See https://ffmpeg.org/download.html."
+        )
     return resolved
 
 
