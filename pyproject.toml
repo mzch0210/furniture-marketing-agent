@@ -18,6 +18,7 @@ fma-abo = "fma.data_sources.abo:main"
 fma-catalog = "fma.app:run"
 fma-creative = "fma.marketing:main"
 fma-render = "fma.production:main"
+fma-runway-ad = "fma.video_ai.cli:main"
 
 [project.optional-dependencies]
 dev = [
