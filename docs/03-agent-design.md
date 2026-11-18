@@ -1,22 +1,61 @@
 # Agent Design
 
-## Pattern
-Orchestrator + specialized Agents + deterministic tools + human approval. Avoid one oversized prompt with no checkpoints.
+## 1. Design pattern
 
-## Roles
-- Orchestrator: state, routing, retries, audit events and approvals.
-- Product Agent: extract candidate SKU facts with source references and verification state.
-- Market Agent: audience, market context, language conventions and sourced content opportunities.
-- Strategy Agent: objective, audience, angle, benefit, proof points, hook and CTA.
-- Creative Agent: English script, voiceover, captions, storyboard and shot list.
-- Production Agent: asset search, shot matching, missing-shot list, EDL, enhancement and render adapters.
-- Quality Agent: product truth, provenance, visual consistency, technical specs, subtitles, audio and marketing clarity.
+Use Orchestrator + specialized Agents + deterministic tools + human approval. Agents return schema-validated proposals; deterministic services own data validation, media rendering, permissions and state transitions.
 
-## Structured shot output
-Each shot should include index, target duration, purpose, visual description, required product view, source asset IDs, on-screen text, voiceover, edit instruction, confidence and missing-footage flag.
+## 2. Full product Agent roles
 
-## Approval policy
-Require human approval for new product facts, commercial commitments, material/safety/certification claims, potentially misleading AI enhancement and final publication. Reuse previously approved facts only within their approved scope.
+### Orchestrator
+Owns workflow state, routing, retries, audit events, approval gates and job status. It does not invent product facts.
 
-## First demo
-Build the narrow path first: Product facts → Creative script/storyboard → real asset matching → EDL/render → QC → human approval. Use one real SKU and factory-approved footage.
+### Product Agent
+Imports and interprets product catalog data, extracts candidate facts, normalizes attributes and attaches source references and verification states. It distinguishes source-reported claims from factory-confirmed facts.
+
+### Market Agent
+Researches target markets, audience language, competitors and content opportunities. External findings retain source URLs and retrieval dates. It must distinguish evidence from hypotheses.
+
+### Strategy Agent
+Converts campaign objective and audience into positioning, message hierarchy, content angles, proof points, CTA and testable creative hypotheses.
+
+### Creative Agent
+Generates localized scripts, voiceover, on-screen text, captions, storyboards and shot lists. It returns structured, time-bounded outputs.
+
+### Production Agent
+Searches the asset library, maps storyboard shots to source assets, detects missing coverage, proposes reshoots, prepares an edit decision list and invokes enhancement/render adapters.
+
+### Quality Agent
+Checks claim provenance, product identity, visual fidelity, subtitles, audio, pacing, duration, aspect ratio, codec, file integrity and campaign requirements. It can block approval.
+
+## 3. Public Data Demo implementation subset
+
+Implement a working vertical slice using the same contracts:
+
+1. Product Agent: ABO adapter → normalized product and source-backed facts.
+2. Strategy Agent: deterministic English-market templates for B2B/B2C objective, audience and angle.
+3. Creative Agent: deterministic script/storyboard/caption templates; optional LLM adapter can be added without making an API key mandatory.
+4. Production Agent: select catalog images or 360° frames, map them to shots, mark missing live-action footage and build an edit decision list.
+5. Quality Agent: validate source links, unverified claims, output file integrity, duration, resolution, frame rate, subtitles and required CTA.
+6. Orchestrator: coordinate the local workflow and expose approval states.
+
+The Market Agent's full research capability is not required for the first Demo. Use a transparent, preconfigured US-English audience/content assumption rather than pretending to have performed live market research.
+
+## 4. Structured shot contract
+
+Each storyboard shot includes:
+- shot index and target duration
+- narrative purpose
+- visual description
+- required product view
+- matched source asset IDs
+- source type: image, 360 sequence or live-action video
+- on-screen text and voiceover
+- transition/edit instruction
+- match confidence
+- missing-footage flag and reshoot note
+
+## 5. Product fact and approval policy
+
+Every claim must reference one or more source facts. Unknown fields remain Unknown. Do not infer material, dimensions, load capacity, certifications, durability, included accessories, MOQ, lead time or warranty from an image or category label.
+
+Require human approval for newly introduced product facts, commercial commitments, potentially misleading scene enhancement and final video. Public catalog facts must be labeled as source-reported, not factory-confirmed.
