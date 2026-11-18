@@ -172,6 +172,16 @@ def test_render_video_creates_valid_vertical_h264_mp4(tmp_path):
     assert len(report.sha256) == 64
 
 
+def test_screen_text_is_ascii_safe_and_compact():
+    from fma.production import _safe_screen_text, _wrapped_text
+
+    safe = _safe_screen_text("Source-reported ≠ factory-confirmed — café")
+    assert safe == "Source-reported factory-confirmed cafe"
+    wrapped = _wrapped_text("A very long furniture product name with several descriptive words", width=18, max_lines=3)
+    assert len(wrapped.splitlines()) <= 3
+    assert all(len(line) <= 21 for line in wrapped.splitlines())
+
+
 def test_renderer_reports_missing_ffmpeg_clearly(tmp_path):
     edl = EditDecisionList(
         campaign_id="test", sku="SKU-101", duration_seconds=1, media_basis="generated_cards_with_missing_product_shots",

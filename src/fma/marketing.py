@@ -113,6 +113,10 @@ def _claim_reference(fact: Any) -> ProductClaimReference:
     )
 
 
+def label_title(value: str) -> str:
+    return value[:64].strip()
+
+
 def _unique_refs(refs: list[ProductClaimReference]) -> list[ProductClaimReference]:
     seen: set[tuple[str, str, str]] = set()
     unique: list[ProductClaimReference] = []
@@ -205,10 +209,10 @@ def build_creative_package(
             feature_parts.append(f"{label}: {_format_fact_value(fact)}")
         if len(feature_parts) == 1:
             feature_voiceover = f"The public listing reports {feature_parts[0]}."
-            feature_text = f"Catalog-listed {feature_parts[0]}"
+            feature_text = f"{label_title(feature_parts[0])}"
         else:
             feature_voiceover = "The public listing reports " + "; ".join(feature_parts) + "."
-            feature_text = "Catalog-listed: " + " · ".join(feature_parts)
+            feature_text = " and ".join(label_title(part) for part in feature_parts)
         feature_refs = selected_refs[:3]
     else:
         feature_voiceover = (
@@ -227,12 +231,13 @@ def build_creative_package(
     duration_list = _segment_durations(request.duration_seconds)
     roles = ["hook", "introduction", "product_detail", "verification", "close"]
     voiceovers = [hook, introduction, feature_voiceover, verification_note, cta]
+    short_name = product_name if len(product_name) <= 42 else product_name[:39].rsplit(" ", 1)[0] + "..."
     screen_texts = [
-        "Furniture product spotlight",
-        product_name if name_ref else "Public catalog product",
+        "FURNITURE SPOTLIGHT",
+        short_name if name_ref else "Public catalog product",
         feature_text,
-        "Source-reported ≠ factory-confirmed",
-        cta,
+        "CATALOG DETAILS. VERIFY WITH SUPPLIER.",
+        "Explore the details",
     ]
     segment_refs = [
         _unique_refs(hook_refs),

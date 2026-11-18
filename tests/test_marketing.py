@@ -94,6 +94,14 @@ def test_claim_reference_must_match_source_fact() -> None:
         validate_claim_provenance(package, product)
 
 
+def test_storyboard_uses_short_ascii_friendly_screen_copy():
+    package = build_creative_package(sample_product(), request(), {})
+    assert package.storyboard[0].on_screen_text == "FURNITURE SPOTLIGHT"
+    assert package.storyboard[1].on_screen_text == "Contemporary Sofa"
+    assert package.storyboard[3].on_screen_text == "CATALOG DETAILS. VERIFY WITH SUPPLIER."
+    assert package.storyboard[4].on_screen_text == "Explore the details"
+
+
 def test_deterministic_generation_exports_files(tmp_path: Path) -> None:
     root = tmp_path / "catalog"
     write_catalog(root)

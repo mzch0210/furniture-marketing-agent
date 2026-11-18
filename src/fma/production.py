@@ -9,6 +9,7 @@ import shutil
 import subprocess
 import tempfile
 import textwrap
+import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -333,24 +334,33 @@ def _escape_filter_value(value: str) -> str:
     )
 
 
-def _wrapped_text(value: str, width: int = 26, max_lines: int = 4) -> str:
+def _safe_screen_text(value: str) -> str:
+    """Normalize display copy to a conservative FFmpeg drawtext-safe ASCII subset."""
+    normalized = unicodedata.normalize("NFKD", value)
+    ascii_text = normalized.encode("ascii", "ignore").decode("ascii")
+    ascii_text = ascii_text.replace("&", "and")
+    ascii_text = re.sub(r"[^A-Za-z0-9 .,!?'-]", " ", ascii_text)
+    return re.sub(r"\s+", " ", ascii_text).strip()
+
+
+def _wrapped_text(value: str, width: int = 30, max_lines: int = 3) -> str:
+    safe = _safe_screen_text(value)
     lines: list[str] = []
-    for paragraph in value.splitlines() or [value]:
+    for paragraph in safe.splitlines() or [safe]:
         lines.extend(textwrap.wrap(paragraph, width=width) or [""])
     if len(lines) > max_lines:
         lines = lines[:max_lines]
-        lines[-1] = lines[-1].rstrip(" .") + "…"
+        lines[-1] = lines[-1].rstrip(" .") + "..."
     return "\n".join(lines)
 
 
-def _drawtext(text_file: str, font_file: str, centered: bool) -> str:
-    y = "(h-text_h)/2" if centered else "h-text_h-150"
+def _drawtext(text_file: str, font_file: str, y: str, fontsize: int = 54) -> str:
     return (
         "drawtext="
         f"fontfile='{_escape_filter_value(font_file)}':"
         f"textfile='{text_file}':"
-        "fontcolor=white:fontsize=52:line_spacing=14:"
-        "box=1:boxcolor=black@0.58:boxborderw=28:"
+        f"fontcolor=0x25231F:fontsize={fontsize}:line_spacing=10:"
+        "box=1:boxcolor=0xFFFDF8@0.94:boxborderw=24:"
         f"x=(w-text_w)/2:y={y}"
     )
 
@@ -398,24 +408,23 @@ def render_video(
             text_file = f"shot-{shot.shot_number:02d}.txt"
             text = shot.on_screen_text
             if shot.match_status == "missing":
-                text = "PRODUCT FOOTAGE NEEDED\n" + (shot.reshoot_note or shot.on_screen_text)
+                text = "PRODUCT FOOTAGE NEEDED. " + (shot.reshoot_note or shot.on_screen_text)
             (work / text_file).write_text(_wrapped_text(text), encoding="utf-8")
-            draw = _drawtext(
-                text_file, font_file,
-                centered=shot.visual_type != "catalog_still_image_animation",
-            )
+            draw = _drawtext(text_file, font_file, y="h-330", fontsize=48)
             clip = work / f"clip-{shot.shot_number:02d}.mp4"
 
             if shot.visual_type == "catalog_still_image_animation":
                 if not shot.local_asset_path or not Path(shot.local_asset_path).is_file():
                     raise ProductionError(f"Shot {shot.shot_number} references a missing local media file.")
                 video_filter = (
-                    "scale=1000:1400:force_original_aspect_ratio=decrease,"
-                    "pad=1000:1400:(ow-iw)/2:(oh-ih)/2:color=white,"
-                    "zoompan=z='min(zoom+0.0002,1.04)':"
-                    "x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':"
-                    f"d=1:s=1000x1400:fps={edl.fps},"
-                    f"pad={edl.width}:{edl.height}:(ow-iw)/2:(oh-ih)/2:color=0x172033,"
+                    "split=2[background][foreground];"
+                    "[background]scale=1080:1920:force_original_aspect_ratio=increase,"
+                    "crop=1080:1920,gblur=sigma=32,eq=brightness=-0.08:saturation=0.72[bg];"
+                    "[foreground]scale=900:1120:force_original_aspect_ratio=decrease,"
+                    "pad=900:1120:(ow-iw)/2:(oh-ih)/2:color=0xFFFDF8,"
+                    "setsar=1[product];"
+                    "[bg][product]overlay=(W-w)/2:(H-h)/2-80,"
+                    "drawbox=x=70:y=180:w=940:h=8:color=0xB58A55@0.95:t=fill,"
                     + draw
                 )
                 command = [
@@ -429,7 +438,7 @@ def render_video(
                     "-movflags", "+faststart", str(clip),
                 ]
             else:
-                color = "0x7f1d1d" if shot.match_status == "missing" else "0x172554"
+                color = "0xF4E8E4" if shot.match_status == "missing" else "0xF3EFE7"
                 source = f"color=c={color}:s={edl.width}x{edl.height}:r={edl.fps}:d={duration}"
                 command = [
                     ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
