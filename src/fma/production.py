@@ -425,13 +425,14 @@ def render_video(
                     "setsar=1[product];"
                     "[bg][product]overlay=(W-w)/2:(H-h)/2-80,"
                     "drawbox=x=70:y=180:w=940:h=8:color=0xB58A55@0.95:t=fill,"
-                    + draw
+                    + draw + "[outv]"
                 )
                 command = [
                     ffmpeg, "-hide_banner", "-loglevel", "error", "-y",
                     "-loop", "1", "-framerate", str(edl.fps),
                     "-i", shot.local_asset_path,
-                    "-vf", video_filter,
+                    "-filter_complex", video_filter,
+                    "-map", "[outv]",
                     "-frames:v", str(frames),
                     "-an", "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                     "-pix_fmt", "yuv420p", "-r", str(edl.fps),
