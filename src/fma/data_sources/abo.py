@@ -633,6 +633,11 @@ def normalize_listing(
         for value, _, _ in _localized_entries(raw, "product_description")
         if value
     ]
+    descriptions = [
+        str(value)
+        for value, _, _ in _localized_entries(raw, "product_description")
+        if value
+    ]
     bullet_points = [
         str(value)
         for value, _, _ in _localized_entries(raw, "bullet_point")
