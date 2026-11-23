@@ -54,4 +54,15 @@ Outputs: `product-ad.mp4` and `scene-plan.json`. This is a generated scene ad, n
 
 The acknowledgement flag does not establish legal rights. External processing is disabled unless the operator explicitly confirms review and authorization. Ordinary CI uses mocked provider responses and never spends paid credits.
 
-See [AI Scene Video](docs/13-ai-scene-video.md).
+See [Runway AI Scene Video](docs/13-ai-scene-video.md) and [Seedance 2.5](docs/14-seedance-video.md).
+
+## Seedance 2.5 scene video
+
+The Seedance 2.5 adapter uses the official BytePlus ModelArk task API. It supports 1–30 reference images for the full model, 4–30 second output, vertical 9:16, and optional native audio. For the first model comparison, audio is deliberately disabled so both Runway and Seedance outputs can be judged on visuals; English voiceover and music are added in the separate editing stage.
+
+```bash
+export BYTEPLUS_MODELARK_API_KEY="..."
+fma-seedance-ad --sku YOUR_SKU --data-dir data/public/abo --output-dir data/ai-renders --duration 10 --scene-preset auto --model dreamina-seedance-2-5-260628 --resolution 720p --ratio 9:16 --confirm-external-processing-rights
+```
+
+The generated video URL is temporary (24 hours); the CLI downloads it immediately and stores the MP4 and provenance manifest locally.

@@ -106,7 +106,7 @@ def test_runway_product_ad_submits_polls_and_downloads_mp4(tmp_path: Path, monke
         if url.endswith("/v1/recipes/product_ad"):
             body = json.loads(request.data.decode("utf-8"))
             assert body["ratio"] == "720:1280"
-            return FakeResponse(b'"d":"task-123"}')
+            return FakeResponse(b'{"id":"task-123"}')
         if url.endswith("/v1/tasks/task-123"):
             return FakeResponse(b'{"id":"task-123","status":"SUCCEEDED","output":["https://cdn.runway.test/video.mp4"]}')
         if url == "https://cdn.runway.test/video.mp4":

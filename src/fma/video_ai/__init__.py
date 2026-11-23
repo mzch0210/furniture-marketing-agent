@@ -1,1 +1,1 @@
-"""Optional AI scene/video generation providers."""
+"""Optional AI scene/video generation provider adapters."""

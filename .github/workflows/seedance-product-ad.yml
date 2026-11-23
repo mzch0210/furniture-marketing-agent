@@ -1,0 +1,87 @@
+name: Seedance 2.5 Product Ad Demo
+
+on:
+  workflow_dispatch:
+    inputs:
+      sku:
+        description: "Imported ABO furniture SKU"
+        required: true
+        type: string
+      model:
+        description: "Seedance model"
+        required: true
+        default: "dreamina-seedance-2-5-260628"
+        type: choice
+        options:
+          - dreamina-seedance-2-5-260628
+          - dreamina-seedance-2-5-flash-261115
+      scene_preset:
+        description: "Auto-select a room or choose a preset"
+        required: true
+        default: "auto"
+        type: choice
+        options: [auto, bedroom, living_room, dining_room, home_office, entryway, studio]
+      duration:
+        description: "Generated clip duration (seconds)"
+        required: true
+        default: "10"
+        type: choice
+        options: ["6", "8", "10", "15"]
+      confirm_external_processing_rights:
+        description: "I reviewed source-image rights and authorize third-party AI processing"
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+jobs:
+  generate-seedance-ad:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate provider secret and rights acknowledgement
+        env:
+          BYTEPLUS_MODELARK_API_KEY: ${{ secrets.BYTEPLUS_MODELARK_API_KEY }}
+          RIGHTS_CONFIRMED: ${{ inputs.confirm_external_processing_rights }}
+        run: |
+          if [ -z "$BYTEPLUS_MODELARK_API_KEY" ]; then
+            echo "::error::Add BYTEPLUS_MODELARK_API_KEY to repository Actions secrets."
+            exit 1
+          fi
+          if [ "$RIGHTS_CONFIRMED" != "true" ]; then
+            echo "::error::Review source-image rights and provider terms, then explicitly confirm external processing."
+            exit 1
+          fi
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+      - name: Import public ABO catalog sample
+        run: python -m fma.data_sources.abo --data-dir "$RUNNER_TEMP/abo-data" --limit 200
+      - name: Generate Seedance 2.5 furniture scene ad
+        env:
+          BYTEPLUS_MODELARK_API_KEY: ${{ secrets.BYTEPLUS_MODELARK_API_KEY }}
+        run: |
+          fma-seedance-ad \
+            --sku "${{ inputs.sku }}" \
+            --data-dir "$RUNNER_TEMP/abo-data" \
+            --output-dir "$RUNNER_TEMP/ai-renders" \
+            --duration "${{ inputs.duration }}" \
+            --scene-preset "${{ inputs.scene_preset }}" \
+            --model "${{ inputs.model }}" \
+            --resolution 720p \
+            --ratio 9:16 \
+            --confirm-external-processing-rights
+      - name: Upload MP4 and review manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: furniture-seedance-ad-${{ inputs.sku }}
+          path: ${{ runner.temp }}/ai-renders/
+          if-no-files-found: error
+          retention-days: 14

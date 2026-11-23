@@ -106,8 +106,8 @@ def select_product_reference_images(
     limit: int = 10,
 ) -> list[dict[str, str]]:
     """Return distinct HTTPS product image references, main image first."""
-    if not 1 <= limit <= 10:
-        raise ValueError("Runway Product Ad accepts between 1 and 10 product images.")
+    if not 1 <= limit <= 30:
+        raise ValueError("Seedance accepts between 1 and 30 product reference images; Runway Product Ad accepts at most 10.")
     role_order = {"main_image": 0, "other_image": 1}
     candidates = sorted(
         (asset for asset in product.assets if asset.role in role_order and asset.source_uri),
