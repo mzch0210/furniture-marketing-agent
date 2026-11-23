@@ -41,28 +41,40 @@ fma-render --sku YOUR_SKU --audience B2C --objective product_consideration --ang
 
 The local renderer is an offline fallback. It creates an animated catalog-still video, not a scene-generated advertisement or factory footage.
 
-## Optional AI scene-based furniture ad
+## AI scene-based furniture ad
 
-The first paid provider adapter targets Runway's Product Ad Recipe. It accepts 1–10 product images, product information, a creative concept, a vertical ratio, and a 4–15 second duration. Furniture categories map to bedroom, living-room, dining-room, home-office, entryway, or studio presets.
+The project supports Runway Product Ad as an optional comparison provider. For the current public-data demo, the default AI video route is the official Volcano Ark Seedance 2.5 API.
 
-```bash
-export RUNWAYML_API_SECRET="..."
-fma-runway-ad --sku YOUR_SKU --data-dir data/public/abo --output-dir data/ai-renders --duration 10 --scene-preset auto --confirm-external-processing-rights
-```
+### Seedance 2.5 — official Volcano Ark
 
-Outputs: `product-ad.mp4` and `scene-plan.json`. This is a generated scene ad, not factory-shot footage. AI may alter product geometry; human review must compare silhouette, proportions, color, finish, hardware, drawer/door count, and visible construction against source images. Fewer than three images do not establish full multi-view or 360-degree coverage.
+- Standard model: `doubao-seedance-2-5-260628`
+- Lower-cost model: `doubao-seedance-2-5-flash-261115`
+- API endpoint: `https://ark.cn-beijing.volces.com/api/v3`
+- API key environment variable: `ARK_API_KEY`
+- Default output: 10 seconds, 720p, 9:16.
+- Default preflight budget cap: ¥20 per generated clip.
 
-The acknowledgement flag does not establish legal rights. External processing is disabled unless the operator explicitly confirms review and authorization. Ordinary CI uses mocked provider responses and never spends paid credits.
+Official pricing is token-based. For 10 seconds at 720p/9:16 with image references only (no input video), the official formula estimates ¥15.12 for Seedance 2.5 and ¥9.936 for Flash. The actual bill is calculated from the returned `usage.completion_tokens`; the CLI stores both estimate and actual usage in the manifest.
 
-See [Runway AI Scene Video](docs/13-ai-scene-video.md) and [Seedance 2.5](docs/14-seedance-video.md).
-
-## Seedance 2.5 scene video
-
-The Seedance 2.5 adapter uses the official BytePlus ModelArk task API. It supports 1–30 reference images for the full model, 4–30 second output, vertical 9:16, and optional native audio. For the first model comparison, audio is deliberately disabled so both Runway and Seedance outputs can be judged on visuals; English voiceover and music are added in the separate editing stage.
+Activate the model in Volcano Ark first. Official activation requires an available balance of at least ¥200, a qualifying savings plan, or an eligible resource pack. This is an account activation threshold, not the cost of a single clip.
 
 ```bash
-export BYTEPLUS_MODELARK_API_KEY="..."
-fma-seedance-ad --sku YOUR_SKU --data-dir data/public/abo --output-dir data/ai-renders --duration 10 --scene-preset auto --model dreamina-seedance-2-5-260628 --resolution 720p --ratio 9:16 --confirm-external-processing-rights
+export ARK_API_KEY="..."
+fma-seedance-ad \
+  --sku YOUR_SKU \
+  --data-dir data/public/abo \
+  --output-dir data/ai-renders \
+  --duration 10 \
+  --model doubao-seedance-2-5-260628 \
+  --resolution 720p \
+  --ratio 9:16 \
+  --max-estimated-cost-rmb 20 \
+  --scene-preset auto \
+  --confirm-external-processing-rights
 ```
 
-The generated video URL is temporary (24 hours); the CLI downloads it immediately and stores the MP4 and provenance manifest locally.
+For a lower-cost render, choose `doubao-seedance-2-5-flash-261115`. Outputs are `product-ad.mp4` and `seedance-plan.json`. Generated scenes are not factory-shot footage. AI may alter product geometry; human review must compare silhouette, proportions, color, finish, hardware, drawer/door count, and visible construction against source images.
+
+See [Seedance 2.5 / Volcano Ark](docs/14-seedance-video.md) and [Runway AI Scene Video](docs/13-ai-scene-video.md).
+
+External AI processing is disabled unless the operator explicitly confirms review and authorization. Ordinary CI uses mocked provider responses and never spends paid credits.

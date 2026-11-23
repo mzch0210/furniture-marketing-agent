@@ -9,7 +9,12 @@ from fma.video_ai.seedance import SeedanceProviderError, SeedanceVideoClient
 
 
 class FakeResponse:
-    def __init__(self, body: bytes, url: str = "https://ark.ap-southeast.bytepluses.com/api/v3", content_type: str = "application/json"):
+    def __init__(
+        self,
+        body: bytes,
+        url: str = "https://ark.cn-beijing.volces.com/api/v3",
+        content_type: str = "application/json",
+    ):
         self.body = body
         self.headers = {"Content-Type": content_type}
         self._url = url
@@ -37,6 +42,7 @@ def test_seedance_submits_reference_images_polls_and_downloads_mp4(tmp_path: Pat
         if url.endswith("/contents/generations/tasks") and request.get_method() == "POST":
             payload = json.loads(request.data.decode("utf-8"))
             assert payload["model"] == SeedanceVideoClient.DEFAULT_MODEL
+            assert payload["model"] == "doubao-seedance-2-5-260628"
             assert payload["ratio"] == "9:16"
             assert payload["duration"] == 10
             assert payload["resolution"] == "720p"
@@ -46,14 +52,15 @@ def test_seedance_submits_reference_images_polls_and_downloads_mp4(tmp_path: Pat
             refs = [item for item in payload["content"] if item["type"] == "image_url"]
             assert len(refs) == 2
             assert refs[0]["role"] == "reference_image"
+            assert url.startswith(SeedanceVideoClient.DEFAULT_BASE_URL)
             return FakeResponse(b'{"id":"cgt-demo-1"}')
         if url.endswith("/contents/generations/tasks/cgt-demo-1"):
             if len([call for call in calls if call[0].endswith("/contents/generations/tasks/cgt-demo-1")]) == 1:
                 return FakeResponse(b'{"id":"cgt-demo-1","status":"running"}')
             return FakeResponse(
-                b'{"id":"cgt-demo-1","status":"succeeded","content":{"video_url":"https://cdn.byteplus.test/video.mp4"},"ratio":"9:16","duration":10,"resolution":"720p"}'
+                b'{"id":"cgt-demo-1","status":"succeeded","content":{"video_url":"https://cdn.volcengine.test/video.mp4"},"ratio":"9:16","duration":10,"resolution":"720p","usage":{"completion_tokens":216000,"total_tokens":216000}}'
             )
-        if url == "https://cdn.byteplus.test/video.mp4":
+        if url == "https://cdn.volcengine.test/video.mp4":
             return FakeResponse(mp4, url=url, content_type="video/mp4")
         raise AssertionError(f"Unexpected URL: {url}")
 
@@ -70,11 +77,34 @@ def test_seedance_submits_reference_images_polls_and_downloads_mp4(tmp_path: Pat
         duration_seconds=10,
     )
     assert output.read_bytes() == mp4
+    assert result["provider"] == "volcengine_ark"
     assert result["task_id"] == "cgt-demo-1"
     assert result["video"]["sha256"]
+    assert result["billing"]["estimated_cost_rmb"] == 15.12
+    assert result["billing"]["actual_cost_rmb"] == 15.12
+    assert result["billing"]["actual_completion_tokens"] == 216000
     assert len(calls) == 4
     assert calls[0][1].get_header("Authorization") == "Bearer test-key"
     assert calls[-1][1].get_header("Authorization") is None
+
+
+def test_seedance_estimates_official_10_second_vertical_720p_prices():
+    standard = SeedanceVideoClient.estimate_cost(
+        SeedanceVideoClient.DEFAULT_MODEL, 10, ratio="9:16", resolution="720p"
+    )
+    flash = SeedanceVideoClient.estimate_cost(
+        SeedanceVideoClient.FLASH_MODEL, 10, ratio="9:16", resolution="720p"
+    )
+    assert standard["estimated_completion_tokens"] == 216000
+    assert standard["estimated_cost_rmb"] == 15.12
+    assert flash["estimated_cost_rmb"] == 9.936
+
+
+def test_seedance_rejects_adaptive_ratio_for_budget_estimation():
+    with pytest.raises(SeedanceProviderError, match="fixed supported ratio"):
+        SeedanceVideoClient.estimate_cost(
+            SeedanceVideoClient.DEFAULT_MODEL, 10, ratio="adaptive", resolution="720p"
+        )
 
 
 def test_seedance_rejects_non_https_product_images():
@@ -121,7 +151,9 @@ def test_seedance_reports_provider_task_failure(monkeypatch):
         url = request.full_url
         if url.endswith("/contents/generations/tasks") and request.get_method() == "POST":
             return FakeResponse(b'{"id":"cgt-failed"}')
-        return FakeResponse(b'{"id":"cgt-failed","status":"failed","error":{"message":"Model activation required"}}')
+        return FakeResponse(
+            b'{"id":"cgt-failed","status":"failed","error":{"message":"Model activation required"}}'
+        )
 
     monkeypatch.setattr("fma.video_ai.seedance.urllib.request.urlopen", fake_urlopen)
     client = SeedanceVideoClient(api_key="test-key", poll_interval_seconds=0, max_polls=1)

@@ -23,7 +23,7 @@ def _slug(value: str) -> str:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Generate a furniture scene video with BytePlus ModelArk Seedance 2.5."
+        description="Generate a furniture scene video with the official Volcano Ark Seedance 2.5 API."
     )
     parser.add_argument("--sku", required=True)
     parser.add_argument("--data-dir", default="data/public/abo")
@@ -40,12 +40,18 @@ def main(argv: list[str] | None = None) -> int:
         choices=[SeedanceVideoClient.DEFAULT_MODEL, SeedanceVideoClient.FLASH_MODEL],
     )
     parser.add_argument("--resolution", default="720p", choices=["480p", "720p", "1080p", "4k"])
-    parser.add_argument("--ratio", default="9:16", choices=sorted(SeedanceVideoClient.RATIOS))
+    parser.add_argument("--ratio", default="9:16", choices=["9:16", "16:9", "1:1", "4:3", "3:4", "21:9"])
+    parser.add_argument(
+        "--max-estimated-cost-rmb",
+        type=float,
+        default=20.0,
+        help="Abort before the paid API call if the official-formula estimate exceeds this RMB cap (default: 20).",
+    )
     parser.add_argument("--seed", type=int)
     parser.add_argument(
         "--generate-audio",
         action="store_true",
-        help="Let Seedance generate native audio. Disabled by default for controlled visual comparison.",
+        help="Request native synchronized audio. Disabled by default for visual comparison and separate voiceover editing.",
     )
     parser.add_argument(
         "--no-watermark",
@@ -64,14 +70,40 @@ def main(argv: list[str] | None = None) -> int:
             "External AI processing is disabled by default. Review the dataset/image rights and provider terms, "
             "then pass --confirm-external-processing-rights only if authorized."
         )
-    if not (os.getenv("BYTEPLUS_MODELARK_API_KEY") or os.getenv("ARK_API_KEY")):
-        parser.error("Set BYTEPLUS_MODELARK_API_KEY (or ARK_API_KEY) before calling the paid Seedance API.")
+    if not (os.getenv("ARK_API_KEY") or os.getenv("VOLCENGINE_ARK_API_KEY")):
+        parser.error("Set ARK_API_KEY before calling the paid Volcano Ark Seedance API.")
+    if args.max_estimated_cost_rmb <= 0:
+        parser.error("--max-estimated-cost-rmb must be greater than zero.")
+
+    try:
+        estimate = SeedanceVideoClient.estimate_cost(
+            args.model, args.duration, ratio=args.ratio, resolution=args.resolution
+        )
+    except SeedanceProviderError as exc:
+        parser.error(str(exc))
+    if estimate["estimated_cost_rmb"] > args.max_estimated_cost_rmb:
+        parser.error(
+            f"Estimated cost is ¥{estimate['estimated_cost_rmb']:.2f}, above the "
+            f"¥{args.max_estimated_cost_rmb:.2f} preflight cap. Reduce duration/resolution, "
+            "choose Seedance 2.5 Flash, or explicitly raise --max-estimated-cost-rmb."
+        )
+
+    print(
+        json.dumps(
+            {"preflight_cost_estimate": estimate, "max_estimated_cost_rmb": args.max_estimated_cost_rmb},
+            ensure_ascii=False,
+            indent=2,
+        ),
+        flush=True,
+    )
 
     catalog = LocalProductCatalog(args.data_dir)
     product = catalog.get_product(args.sku)
     if product is None:
         parser.error(f"SKU {args.sku!r} was not found in {args.data_dir!r}.")
-    images = select_product_reference_images(product, limit=30 if args.model == SeedanceVideoClient.DEFAULT_MODEL else 10)
+    images = select_product_reference_images(
+        product, limit=30 if args.model == SeedanceVideoClient.DEFAULT_MODEL else 10
+    )
     if not images:
         parser.error("The selected SKU has no usable HTTPS main/other product images.")
 
@@ -114,6 +146,7 @@ def main(argv: list[str] | None = None) -> int:
         "category": product.category,
         "scene_preset": scene_preset_manifest(preset),
         "provider_result": result,
+        "billing": result.get("billing", {}),
         "product_reference_images": images,
         "reference_image_count": len(images),
         "multi_view_coverage": (
@@ -149,6 +182,7 @@ def main(argv: list[str] | None = None) -> int:
             "Multiple reference images do not prove complete 360-degree coverage.",
             "This command generates one 4-30 second clip, not the final edited campaign.",
             "The provider's video URL is temporary; the CLI downloads the MP4 immediately.",
+            "Estimated cost is a preflight estimate; the actual bill is calculated from usage.completion_tokens.",
         ],
     }
     output_dir.mkdir(parents=True, exist_ok=True)

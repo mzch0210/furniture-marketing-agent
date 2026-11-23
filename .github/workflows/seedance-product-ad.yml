@@ -10,11 +10,11 @@ on:
       model:
         description: "Seedance model"
         required: true
-        default: "dreamina-seedance-2-5-260628"
+        default: "doubao-seedance-2-5-260628"
         type: choice
         options:
-          - dreamina-seedance-2-5-260628
-          - dreamina-seedance-2-5-flash-261115
+          - doubao-seedance-2-5-260628
+          - doubao-seedance-2-5-flash-261115
       scene_preset:
         description: "Auto-select a room or choose a preset"
         required: true
@@ -26,9 +26,9 @@ on:
         required: true
         default: "10"
         type: choice
-        options: ["6", "8", "10", "15"]
+        options: ["6", "8", "10"]
       confirm_external_processing_rights:
-        description: "I reviewed source-image rights and authorize third-party AI processing"
+        description: "I reviewed source-image rights and authorize processing by Volcano Ark"
         required: true
         default: false
         type: boolean
@@ -45,17 +45,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Validate provider secret and rights acknowledgement
+      - name: Validate Ark API secret and rights acknowledgement
         env:
-          BYTEPLUS_MODELARK_API_KEY: ${{ secrets.BYTEPLUS_MODELARK_API_KEY }}
+          ARK_API_KEY: ${{ secrets.ARK_API_KEY }}
           RIGHTS_CONFIRMED: ${{ inputs.confirm_external_processing_rights }}
         run: |
-          if [ -z "$BYTEPLUS_MODELARK_API_KEY" ]; then
-            echo "::error::Add BYTEPLUS_MODELARK_API_KEY to repository Actions secrets."
+          if [ -z "$ARK_API_KEY" ]; then
+            echo "::error::Add ARK_API_KEY to repository Settings > Secrets and variables > Actions."
             exit 1
           fi
           if [ "$RIGHTS_CONFIRMED" != "true" ]; then
-            echo "::error::Review source-image rights and provider terms, then explicitly confirm external processing."
+            echo "::error::Review source-image rights and Volcano Ark terms, then explicitly confirm external processing."
             exit 1
           fi
       - name: Install package
@@ -66,7 +66,7 @@ jobs:
         run: python -m fma.data_sources.abo --data-dir "$RUNNER_TEMP/abo-data" --limit 200
       - name: Generate Seedance 2.5 furniture scene ad
         env:
-          BYTEPLUS_MODELARK_API_KEY: ${{ secrets.BYTEPLUS_MODELARK_API_KEY }}
+          ARK_API_KEY: ${{ secrets.ARK_API_KEY }}
         run: |
           fma-seedance-ad \
             --sku "${{ inputs.sku }}" \
@@ -77,8 +77,9 @@ jobs:
             --model "${{ inputs.model }}" \
             --resolution 720p \
             --ratio 9:16 \
+            --max-estimated-cost-rmb 20 \
             --confirm-external-processing-rights
-      - name: Upload MP4 and review manifest
+      - name: Upload MP4 and cost/review manifest
         uses: actions/upload-artifact@v4
         with:
           name: furniture-seedance-ad-${{ inputs.sku }}
